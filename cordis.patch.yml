@@ -2,3 +2,5 @@
 - insert:
     - id: dsh-plugin-veriscope
       name: dsh-plugin-veriscope
+      config:
+        completionMode: "off"

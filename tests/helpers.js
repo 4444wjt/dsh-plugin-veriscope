@@ -32,7 +32,7 @@ export function setup(t, { kind = 'pass', mutate } = {}) {
   const processResult = { code: kind === 'fail' ? 1 : 0, signal: null, reason: null, error: null, stdout: output, stderr: '', elapsed_ms: 1, stdout_bytes: Buffer.byteLength(output), stderr_bytes: 0 }
   const runner = async (executable, args, options) => {
     calls.push({ executable, args, options })
-    if (args.includes('-c')) return { ...processResult, code: 0, stdout: JSON.stringify({ version: 'mock', pandas: 'mock', executable }) }
+    if (args.includes('-c')) return { ...processResult, code: 0, stdout: JSON.stringify({ version: 'mock', pandas: 'mock', executable, pandas_metadata_sha256: '0'.repeat(64) }) }
     return { ...processResult }
   }
   return { root, input, value, contract, calls, runner, processResult, options: { env: { VERISCOPE_ROOT: root, VERISCOPE_PYTHON: process.execPath }, contract, runner, artifactsDir: path.join(root, 'runs') } }
