@@ -25,6 +25,9 @@ window.__ModuleLoader__.load({
       React.useEffect(() => { refresh(); return () => { ++sequence.current; abort.current?.abort() } }, [refresh])
       const status = value?.current_verdict ?? 'REVIEW'
       const tone = status === 'PASS' ? '#9dd7b7' : status === 'FAIL' ? '#ffb2a9' : '#f2c879'
+      const detail = value?.details
+      const number = n => typeof n === 'number' && Number.isFinite(n) ? String(n) : '未知'
+      const reasons = value?.reason_codes?.map((code, i) => `${value.reason_messages?.[i] || `${code}（未收录）`} [${code}]`).join('；')
       return h('section', { className: 'vscope-card', 'aria-label': 'VeriScope 门禁回执', 'data-veriscope-status': status },
         h('style', null, css), h('h3', null, '门禁回执'),
         h('div', { className: 'vscope-status', style: { color: tone }, role: 'status', 'aria-live': 'polite' }, h('span', { className: 'vscope-dot', 'aria-hidden': true }), loading ? '正在检查' : labels[status]),
@@ -33,7 +36,11 @@ window.__ModuleLoader__.load({
         h('details', null, h('summary', null, '查看依据'),
           h('dl', null, h('dt', null, '历史裁决'), h('dd', null, labels[value?.historical_verdict ?? meta?.historical_verdict] ?? '未知'),
             h('dt', null, '运行编号'), h('dd', null, runId || '尚无记录'),
-            h('dt', null, '检查原因'), h('dd', null, value?.reason_codes?.join('、') || '尚未完成当前检查'),
+            h('dt', null, '检查原因'), h('dd', null, reasons || '尚未完成当前检查'),
+            h('dt', null, '回执阈值'), h('dd', null, `Faithfulness ${number(detail?.thresholds?.faith)}；Context Precision ${number(detail?.thresholds?.ctx)}`),
+            h('dt', null, '回执绑定环境'), h('dd', null, `Node ${detail?.environment?.node ?? '未知'}；Python ${detail?.environment?.python ?? '未知'}；pandas ${detail?.environment?.pandas ?? '未知'}`),
+            h('dt', null, '输入摘要'), h('dd', null, detail?.input?.path ?? '未知'),
+            h('dd', null, `${number(detail?.input?.bytes)} 字节；SHA-256 ${typeof detail?.input?.sha256 === 'string' && /^[a-f0-9]{64}$/.test(detail.input.sha256) ? detail.input.sha256.slice(0, 12) : '未知'}`),
             h('dt', null, '范围摘要'), h('dd', null, value?.scope_digest || '未知')),
           h('p', null, '重新检查只读回执；重新执行门禁请调用重放工具。结果只代表检查时所列绑定项，不保证回答事实正确。')),
         value?.checked_at_utc && h('time', { dateTime: value.checked_at_utc }, '检查于 ' + new Date(value.checked_at_utc).toLocaleString('zh-CN')))

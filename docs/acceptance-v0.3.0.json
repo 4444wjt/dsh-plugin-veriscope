@@ -1,0 +1,74 @@
+{
+  "version": "0.3.0",
+  "verified_at_utc": "2026-10-17T06:20:32.759060+00:00",
+  "unit_tests": {
+    "total": 121,
+    "passed": 121,
+    "original": 91,
+    "added": 30,
+    "original_test_bodies_unchanged": true,
+    "log_sha256": "0098f6b0186b4868f5b6f58845df6f43a2faf4c3ac5226f4034eabda3aa4a62b"
+  },
+  "host": {
+    "carrier": "DSH NEXT 2.0.18-next",
+    "sdk": "0.2.1-alpha.2",
+    "node": "v24.18.1",
+    "python": "3.11.9",
+    "pandas": "3.0.6",
+    "tools": 8,
+    "calls_per_validation": 16,
+    "successful_process_starts": 3,
+    "installed_runtime_files_byte_checked": 21,
+    "source": "Local reviewed source copy and cached SDK dependencies, isolated profile; no remote installation claim",
+    "three_states": [
+      "PASS",
+      "FAIL",
+      "REVIEW"
+    ],
+    "normal_doctor": "READY; 7 items ok",
+    "missing_python": "REVIEW with Chinese PowerShell repair suggestion",
+    "batch_counts": {
+      "pass": 1,
+      "fail": 1,
+      "review": 0,
+      "error": 1
+    },
+    "batch_verdict": "FAIL",
+    "json_byte_identical_to_original_receipt": true,
+    "export_does_not_overwrite": true,
+    "managed_bind_complete": true
+  },
+  "native_card": {
+    "available": true,
+    "all_states": true,
+    "body_px": 15,
+    "gold": "#F2C879",
+    "one_readonly_refresh_button": true,
+    "new_details": [
+      "thresholds",
+      "receipt_environment",
+      "input_path_bytes_sha256_prefix"
+    ],
+    "horizontal_overflow": false,
+    "screenshot_sha256": "7ac7ff4a01d0a128cb86b1844fde0738efa95f0382cedfc4f992490363d87ca0",
+    "note": "Screenshot and DOM checks from actual host; second detail screenshot timed out and was cancelled, DOM field checks retained"
+  },
+  "isolation": {
+    "upstream_files": 14,
+    "upstream_hashes_unchanged": true,
+    "upstream_status_unchanged": true,
+    "upstream_refs_unchanged": true,
+    "upstream_head_unchanged": true,
+    "default_profile_files_unchanged": true
+  },
+  "new_evaluation_model_calls": 0,
+  "agent_or_model_turns": 0,
+  "batch_conflict_resolution": "FAIL takes precedence, including PASS/FAIL/broken-file; REVIEW example in task is inconsistent with FAIL preservation",
+  "limits": [
+    "Not a factual correctness benchmark",
+    "No conversational model automatic tool selection was run",
+    "No npm publication",
+    "No claim of global chat blocking, novelty or cost savings",
+    "Known local host HMR watcher warning occurred on one intermediate start; successful ToolRuntime checks retained"
+  ]
+}

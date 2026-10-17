@@ -1,6 +1,6 @@
 # VeriScope 离线门禁重放 · DSH 插件
 
-把已有 VeriScope 评测 JSON 接入 DSH，调用原 Python Quality Gate，返回**通过／失败／待复核**、当前回执有效性与来源。v0.2.0 增加受管任务完成校验和宿主原生结果卡。
+把已有 VeriScope 评测 JSON 接入 DSH，调用原 Python Quality Gate，返回**通过／失败／待复核**、当前回执有效性与来源。v0.3.0 增加环境体检、回执清单、批量重放和报告导出。
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手动镜像](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · 完整 VeriScope：[主仓库](https://github.com/4444wjt/RAG_Evaluation_Demo)／[镜像](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue 和 PR 请提交到 GitHub。
 
@@ -8,9 +8,13 @@ Python 是唯一数值裁判；REVIEW 永不转为 PASS，已确认 FAIL 不被�
 
 ## 怎么用
 
-在 DSH 聊天中输入：
+**30 秒上手**：配置好下面的环境后，在 DSH 中依次输入：
 
-> 使用 VeriScope 检查 `D:\数据\评测结果.json`，告诉我是否通过门禁，以及未通过的原因。
+1. “使用 `veriscope_doctor` 检查本机环境，告诉我需要修复什么。”
+2. “使用 VeriScope 检查 `D:\数据\评测结果.json`，说明是否通过及原因。”
+3. “使用 `veriscope_gate_list` 列出最近的门禁回执与当前有效性。”
+
+体检的“环境就绪”仅表示环境可用，门禁通过需实际重放。聊天能否自动选中工具取决于 DSH 的模型配置；需要时直接写出工具名。
 
 插件读取已有评测结果，执行门禁检查，展示三种状态：
 
@@ -58,12 +62,16 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 `off` 关闭停止事件提醒，四个工具仍可使用。`remind` 只提醒未完成的绑定任务，不承诺普通聊天全局阻断。路径不能写入这个 config。
 
-## 四个工具
+## 八个工具
 
 | 工具 | 用途 |
 |---|---|
+| `veriscope_doctor({})` | 检查路径、脚本契约、Python／pandas、状态根写入和最近回执；返回环境就绪或待复核与修复建议 |
 | `veriscope_gate_replay({result_path, baseline?, faith?, ctx?})` | 实际执行已有归档门禁，保存独立记录，符合条件时生成 ReceiptV1 |
 | `veriscope_gate_status({run_id, faith?, ctx?, baseline_run_id?})` | 只读检查回执当前有效性，不重放、不评分、不生成回执 |
+| `veriscope_gate_list({limit?})` | 默认列出最近 50 条，允许 1–200；逐条复用 status，损坏记录另列 |
+| `veriscope_gate_batch({paths?, dir?, baseline?, faith?, ctx?})` | 路径数组与目录二选一；顺序重放，最多 200 份，可取消，逐份留痕 |
+| `veriscope_gate_export({run_id?, run_ids?, format})` | 导出 1–50 条回执到状态根 `exports/`；支持 `md`／`json`，不覆盖旧文件 |
 | `veriscope_gate_bind({task_id, run_id, faith?, ctx?, baseline_run_id?})` | 在宿主提供的本会话内绑定受管任务与当前回执 |
 | `veriscope_gate_complete({task_id, run_id})` | 复验本会话绑定，只在当前有效 PASS 下登记完成 |
 
@@ -71,9 +79,28 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 “检查有效性”用 status；“重新执行门禁”用 replay。只有实际 replay 能生成回执。输入、基线、策略、上游、插件或环境变化时，旧回执进入待复核，历史失败仍保留。详见 [回执协议](docs/RECEIPTS.md)。
 
+新工具的输入与输出示例：
+
+```text
+veriscope_doctor({})
+→ {status:"READY", ready:true, summary:"环境就绪", items:[…]}
+veriscope_gate_list({limit:10})
+→ {items:[{run_id:…, historical_verdict:"PASS", current_verdict:"REVIEW", …}], damaged:[…]}
+veriscope_gate_batch({paths:["a.json","b.json","broken.json"]})
+→ {status:"FAIL", counts:{pass:1, fail:1, review:0, error:1}, …}
+veriscope_gate_export({run_id:"实际运行 UUID", format:"md"})
+→ {exported:true, path:"<状态根>/exports/<唯一文件名>.md", …}
+```
+
+以上为字段示例，不是实测业务结果。批量**有 FAIL 就汇总为 FAIL**；没有 FAIL 但存在待复核、错误、取消或未处理项时为 REVIEW。目录只读直接包含的 JSON，不递归。错误不掩盖已确认失败，失败不阻止下一份重放。
+
+清单最多扫描 10,000 个目录项，超限明确待复核；`limit` 范围外的回执不做当前环境复验。坏回执时间不能可信读取时，排序使用目录修改时间并标明来源。导出单条 JSON 与原回执字节一致，多条为原回执对象数组；JSON 中历史 PASS 不代表当前有效，当前状态另见工具返回的 `current`。Markdown 同时列历史与当前状态、归档指标、阈值、证据条数和限制。体检只创建并清理自身临时写入探针，不改配置或安装依赖。
+
 ## 原生结果卡
 
 支持 `tool.call.toolview` 的宿主显示一张深色金色中文结果卡：当前三态、下一步、“重新检查”和折叠依据。按钮只读查状态，不能重放或登记完成。没有卡片接口时保留中文工具文本。
+
+折叠依据包含中文原因、回执阈值、Node／Python／pandas 版本，以及输入路径、字节数和 SHA-256 前 12 位；缺失值保持未知。这些是回执绑定的历史环境描述，当前有效性仍以本次检查为准。
 
 卡片打开时重新检查，不直接显示历史 PASS；加载失败、缺少本会话关联或协议不完整均为待复核。显示仅代表所示检查时刻，不持续监视文件，使用前可再次检查。原生卡片不提供路径设置面板。
 

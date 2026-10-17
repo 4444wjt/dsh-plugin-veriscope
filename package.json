@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-veriscope",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "VeriScope 离线门禁重放 · DSH 插件",
   "type": "module",
