@@ -28,14 +28,12 @@ $env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
 dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 ```
 
-先准备独立 profile 和对应宿主 CLI；安装命令不创建完整宿主配置。profile 的 patch 中配置唯一同名条目：
+先准备独立 profile 和对应宿主 CLI；安装命令不创建完整宿主配置。插件 bundle 已插入默认条目；在 `<DSH_HOME>/profiles/<名称>/cordis.patch.yml` 按已有 `id` 覆盖配置，不要再次 `insert`：
 
 ```yaml
-- insert:
-    - id: dsh-plugin-veriscope
-      name: dsh-plugin-veriscope
-      config:
-        completionMode: "remind"
+- id: dsh-plugin-veriscope
+  config:
+    completionMode: "remind"
 ```
 
 `off` 关闭停止事件提醒，四个工具仍可使用。`remind` 只提醒未完成的绑定任务，不承诺普通聊天全局阻断。路径不能写入这个 config。
