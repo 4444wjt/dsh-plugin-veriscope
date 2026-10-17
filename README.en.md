@@ -4,6 +4,8 @@
 
 > This page is a translation of the Chinese original. If the two ever disagree, the Chinese original is authoritative.
 
+> **Upgrading to 0.4.0**: existing receipts become REVIEW for current validity; historical PASS/FAIL verdicts are not rewritten. Back up the complete state directory and original archives before upgrading, and use a persistent state directory outside the plugin. Package-local `.local` may be lost on reinstall; exporting a receipt is not a complete backup. Replay again to obtain a receipt for the new version.
+
 Connects an existing VeriScope evaluation JSON to DSH, invokes the original Python Quality Gate, and returns **pass / fail / needs review**, plus current receipt validity and sources.
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee mirror (manually synchronized)](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · Full VeriScope: [main repo](https://github.com/4444wjt/RAG_Evaluation_Demo) / [mirror](https://gitee.com/kkbushishou/rag-hallucination-evaluator). Issues and PRs go to GitHub.
@@ -42,7 +44,7 @@ To constrain task completion, bind the current check to a task. Only a bound rec
 
 ## Install and configure
 
-A published package exists on npm. In a verified DSH CLI you must name the profile explicitly; this example uses a dedicated `veriscope-demo`:
+This document covers **0.4.0**, with a DSH plugin and the independent `veriscope-mcp` entry. Check the [npm package page](https://www.npmjs.com/package/dsh-plugin-veriscope) for available releases; MCP setup and pending checks are described below. The verified DSH CLI requires an explicit profile; these examples use the isolated `veriscope-demo` profile:
 
 ```powershell
 # install
@@ -61,7 +63,9 @@ dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 
 Replace the path with the real source location. Do not treat a directory or link install as evidence of a registry install. **A successful install is not a passing gate**: first use still requires `VERISCOPE_ROOT` and `VERISCOPE_PYTHON` plus a doctor run. The npm package excludes tests and `docs`; `npm test` is for source development only, and `node scripts/verify-replay.mjs` only works in the full source repository with its verification material present — neither is an installed capability. See the repository for full documentation.
 
-Verified on Windows with DSH NEXT 2.0.18-next and internal DSH / tools / skill **0.2.1-alpha.2**. Node ≥22.19. Other host versions are unverified. Upstream plus Python / pandas compatibility is also required; pinned dependencies are in [upstream notes](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md). The plugin does not bundle the full upstream or any business archive.
+Historical 0.3.x verification: Windows with DSH NEXT 2.0.18-next and internal DSH / tools / skill **0.2.1-alpha.2**. Node ≥22.19. Other host versions are unverified. Upstream plus Python / pandas compatibility is also required; pinned dependencies are in [upstream notes](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md). The plugin does not bundle the full upstream or any business archive.
+
+The DSH entry requires `@deepseek-ai/dsh-tools` version `0.2.1-alpha.2`, checks the version before loading SDK code, and then checks `defineTool`. Missing, incompatible and unloadable SDKs report `SDK_MISSING`, `SDK_INCOMPATIBLE` and `SDK_LOAD_FAILED`. It never installs or switches SDK versions automatically; these checks do not replace host acceptance. MCP does not load the DSH SDK.
 
 ### Configuration
 
@@ -69,9 +73,9 @@ Verified on Windows with DSH NEXT 2.0.18-next and internal DSH / tools / skill *
 
 | Setting | Entry point | Default and requirements |
 |---|---|---|
-| `veriscopeRoot` | `VERISCOPE_ROOT` | `D:\RAG_Evaluation_Demo`; set explicitly on any other machine |
-| `pythonPath` | `VERISCOPE_PYTHON` | Probes upstream `.venv` / `venv`; never falls back to PATH |
-| state root | `VERISCOPE_STATE_DIR` | `<plugin dir>/.local`; explicit value wins, usable for read-only installs |
+| `veriscopeRoot` | `VERISCOPE_ROOT` | Windows default: `D:\RAG_Evaluation_Demo`; required explicitly on POSIX |
+| `pythonPath` | `VERISCOPE_PYTHON` | Probes `.venv` / `venv`: `Scripts/python.exe` on Windows, `bin/python` on POSIX; never falls back to PATH |
+| state root | `VERISCOPE_STATE_DIR` | DSH defaults to `<plugin dir>/.local`; use a persistent directory. MCP requires an explicit value |
 | reminder mode | cordis patch `completionMode` | `off`; only `off` or `remind`; anything else is an error |
 
 Explicit values for all three environment variables must be non-empty absolute paths; invalid values never fall back silently. Set them **in the same terminal that starts DSH**, then start or fully restart the host. The last line below is an alternative to the npm install above, for installation from GitHub; skip it if the plugin is already installed:
@@ -92,6 +96,12 @@ Prepare a dedicated profile and the matching host CLI first; the install command
 ```
 
 `off` disables turn-stop reminders; all tools remain available. `remind` only reminds about unfinished bound tasks and does not promise a global block on ordinary chat. Paths cannot be written into this config.
+
+## Cross-host MCP (0.4.0)
+
+This version provides stdio MCP configuration for Claude Code and Codex. Claude registration and connection were checked in isolation; Codex registration and configuration readback were checked. Actual tool calls in both hosts remain pending. Windows was verified; real Linux replay remains pending. Start source `mcp.js` with an absolute Node path; see [MCP setup](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md) for configuration and isolated examples. It does not load the DSH SDK. The first MCP adapter exposes only `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, and `veriscope_gate_list`, with no native result card. batch/export and bind/complete remain DSH-only. Session bindings are not ported; MCP reports have `execution.session_id: null`.
+
+All four MCP tools require an explicit, valid `VERISCOPE_STATE_DIR`; a missing value returns REVIEW without falling back to the package directory. doctor writes and removes a temporary probe; replay writes reports and receipts. Neither is read-only; status/list are read-only. A business FAIL is not a tool execution error. Host tool calls, real Linux replay, and version checks are recorded separately in [acceptance evidence](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json); registration or a custom client passing does not establish host acceptance.
 
 ## The eight tools
 
@@ -114,6 +124,8 @@ Prepare a dedicated profile and the matching host CLI first; the install command
 - `task_id` is 1–80 characters of letters, digits, underscore, dot or hyphen; the session identity cannot be forged through tool parameters. Bindings live in memory only, must be re-bound after restart, and completion records on disk do not restore authorization.
 
 Use status to "check validity" and replay to "run the gate again". Only an actual replay produces a receipt. When input, baseline, policy, upstream, plugin or environment change, the old receipt moves to needs-review while historical failures are preserved. See [receipt protocol](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md).
+
+Version 0.4.0 accepts either the original audited contract or the LF contract audited from public commit `1b89bcabb83e1b123039799516596fdcfd393d42`. An entire contract must match original bytes: no per-file mixing or runtime normalization. Receipt hashes now cover the MCP entry, shared catalog, and contract selector. Upgrades make old receipts currently REVIEW while preserving their historical records.
 
 ### Example inputs and outputs
 
@@ -144,7 +156,7 @@ When JSON is rejected, `execution.errors[].diagnostic` gives a confirmable detec
 
 status `changes` explains only the fixed binding fields between the original receipt and the current capture, at most 20 items with truncation marked. `COMPLETE` means only that the listed scope was verified; no change does not prove factual correctness. `UNVERIFIED` means part or all could not be verified, and confirmed changes are still listed. A contract-check failure keeps the original rejection path; everything else stays unverified — the check is not bypassed to fabricate a comparison, and score changes are not attributed from it.
 
-## Native result card
+## Native result card (DSH)
 
 Hosts supporting `tool.call.toolview` show a dark, gold-accented Chinese result card: current three-state verdict, next step, a "re-check" button and collapsible basis. The button only reads status; it cannot replay or register completion. Without a card interface, the Chinese tool text is kept.
 
@@ -170,6 +182,8 @@ After a confirmed FAIL, the core FAIL is preserved even if writing the receipt f
 
 Records live in `<state root>/runs/<run_id>/` and contain `report.json`, stdout, stderr and, when eligible, `receipt.json`; completion registrations are stored separately under `completions/`. Appended records never overwrite failures. Logs may contain archive fragments and local paths — redact before sharing. The plugin uploads no archives and prints no full environment.
 
+Records are retained indefinitely by default; there is no automatic cleanup. With an explicit `VERISCOPE_STATE_DIR`, `node scripts/prune.mjs --dry-run --json` only previews file inventory, logical byte counts, and recorded relationships. It neither verifies those relationships nor offers deletion. Keep persistent state outside the plugin directory before uninstalling or reinstalling.
+
 Input is limited to 10 MiB, stdout / stderr to 2 MiB each, replay to 120 seconds and each environment probe to 10 seconds. status reads and hashes files and starts Python to read versions and pandas metadata; it runs neither the evaluation model nor the gate script. Hashes do not prove semantic correctness, and a user who can rewrite the whole state root is out of scope; changes after a check are only found by checking again.
 
 The historical trace only verifies literal source positions and is labelled `historical_ai`; it is not a new semantic check. The core makes zero new evaluation-model calls, though host conversation may still cost tokens. No claim of algorithmic originality or end-to-end cost reduction is made.
@@ -182,7 +196,7 @@ node scripts/replay.mjs --result 'D:\your-data\evaluation.json' --json
 dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
 ```
 
-Unit tests use constructed archives and protocol stubs; they need neither a model nor Python. Real Python and host acceptance are covered in the [verification notes](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md). Uninstalling removes the registration and keeps user state and historical evidence. Publishing from source requires explicitly setting `VERISCOPE_RELEASE=1` and passing the version/tag guard; see the contributing guide.
+Unit tests use constructed archives and protocol stubs; they need neither a model nor Python. Real Python and host acceptance are covered in the [verification notes](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md). Uninstalling removes the registration. The plugin does not delete external state roots, but package-local state may be lost on removal or reinstall; back it up first. Publishing from source requires explicitly setting `VERISCOPE_RELEASE=1` and passing the version/tag guard; see the contributing guide.
 
 ## Contributing and license
 
