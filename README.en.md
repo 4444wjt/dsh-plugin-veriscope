@@ -39,7 +39,7 @@ node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy ex
 
 **A passing mean can still reveal a weak row.** Per-metric diagnostics show the worst valid row and count rows outside the mean threshold; diagnostics do not change the verdict. Opt in with `GatePolicyV2` and `row_threshold`, using the metric's existing direction and unit. In the constructed example, a mean of 0.81 includes a 0.41 row: mean-only can PASS, while requiring every row to be ≥0.5 yields FAIL. V2 compares original JSON numeric tokens as exact decimals; V1 floating-point decisions remain unchanged.
 
-See packaged `docs/B2.md`, `schemas/` and `examples/builtin/`. Examples are constructed, not real evaluations. Version 0.6.0 is an unpublished local candidate. Historical 0.5.0 evidence remains in `docs/acceptance-b2-v0.5.0.json`; it does not verify this candidate's host or Ubuntu behavior.
+See packaged `docs/B2.md`, `schemas/` and `examples/builtin/`. Examples are constructed, not real evaluations. Version 0.6.0 is published to npm. Windows and Ubuntu remote CI, including real replay against the pinned upstream, both passed; Claude complete structured error delivery remains unverified. Historical 0.5.0 evidence remains in `docs/acceptance-b2-v0.5.0.json`.
 
 ## Original VeriScope path: quick start
 

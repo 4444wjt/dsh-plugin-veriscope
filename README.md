@@ -39,7 +39,7 @@ node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy ex
 
 **均值通过，仍可看到最差一条。** 每指标显示最差有效行及未达均值阈值的条数；诊断本身不改裁决。需要逐条拦截时，用 `GatePolicyV2` 加 `row_threshold`，沿用该指标的方向和单位。例如构造分数的均值为 0.81、其中一条为 0.41：只查均值可 PASS，显式要求每条 ≥0.5 才 FAIL。V2 使用 JSON 原数字词元作精确十进制比较；V1 原浮点判定保持不变。
 
-规范、策略和导出方式见包内 `docs/B2.md`、`schemas/`、`examples/builtin/`。样例为文档构造，非真实评测。0.6.0 为本地候选，未发布；0.5.0 历史验收保留在 `docs/acceptance-b2-v0.5.0.json`，不替代本候选的宿主或 Ubuntu 验证。
+规范、策略和导出方式见包内 `docs/B2.md`、`schemas/`、`examples/builtin/`。样例为文档构造，非真实评测。0.6.0 已发布至 npm；Windows 与 Ubuntu 远端 CI（含固定上游真实回放）均已验证，Claude 完整结构化错误交付仍待验。0.5.0 历史验收保留在 `docs/acceptance-b2-v0.5.0.json`。
 
 ## 原 VeriScope 路径：配置后上手
 

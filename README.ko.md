@@ -39,7 +39,7 @@ node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy ex
 
 **평균이 통과해도 가장 낮은 성능의 행을 확인할 수 있습니다.** 지표마다 최악의 유효 행과 평균 임계값 미달 행 수를 보여 줍니다. 진단만으로 판정은 바뀌지 않습니다. 개별 행을 제한하려면 `GatePolicyV2`의 `row_threshold`를 명시하며 같은 방향과 단위를 사용합니다. 구성 예제에서는 평균 0.81에 0.41인 행이 포함되어 평균만 검사하면 PASS, 모든 행 ≥0.5를 요구하면 FAIL입니다. V2는 원본 JSON 숫자 토큰을 정확한 십진수로 비교하며 V1 부동소수점 판정은 유지합니다.
 
-동봉된 `docs/B2.md`, `schemas/`, `examples/builtin/`을 참조하십시오. 예제는 구성 예이며 실제 평가가 아닙니다. 0.6.0은 미출시 로컬 후보입니다. 0.5.0의 과거 증거는 `docs/acceptance-b2-v0.5.0.json`에 보존하며 본 후보의 호스트／Ubuntu 검증을 대신하지 않습니다.
+동봉된 `docs/B2.md`, `schemas/`, `examples/builtin/`을 참조하십시오. 예제는 구성 예이며 실제 평가가 아닙니다. 0.6.0은 npm에 공개되었습니다. Windows와 Ubuntu 원격 CI(고정 업스트림 실제 리플레이 포함)를 통과했으며 Claude의 완전한 구조화 오류 전달만 미검증입니다. 0.5.0의 과거 증거는 `docs/acceptance-b2-v0.5.0.json`에 보존합니다.
 
 ## 원래 VeriScope 경로: 설정 후 시작
 
