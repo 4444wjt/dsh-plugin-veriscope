@@ -4,13 +4,13 @@
 
 > This page is a translation of the Chinese original. If the two ever disagree, the Chinese original is authoritative.
 
-> **Upgrading to the 0.5.0 local candidate**: existing receipts become REVIEW for current validity; historical PASS/FAIL verdicts are not rewritten. Back up the complete state directory and original archives before upgrading, and use a persistent state directory outside the plugin. Package-local `.local` may be lost on reinstall; exporting a receipt is not a complete backup. Replay again to obtain a receipt for the new version.
+> **Upgrading to the 0.6.0 local candidate**: existing receipts become REVIEW for current validity; historical PASS/FAIL verdicts are not rewritten. Back up the complete state directory and original archives before upgrading, and use a persistent state directory outside the plugin. Package-local `.local` may be lost on reinstall; exporting a receipt is not a complete backup. Run replay for ReceiptV1 or check for ReceiptV2 to obtain a new receipt.
 
 Check existing scores with a standalone Node threshold gate, or replay VeriScope archives with the original Python Quality Gate. Both return **PASS / FAIL / REVIEW** and verifiable local receipts.
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee mirror (manually synchronized)](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · Full VeriScope: [main repo](https://github.com/4444wjt/RAG_Evaluation_Demo) / [mirror](https://gitee.com/kkbushishou/rag-hallucination-evaluator). Issues and PRs go to GitHub.
 
-Python remains the numeric judge for replay; B2 uses the separate `builtin-threshold-v1` engine with a distinct policy. REVIEW never becomes PASS, and a confirmed FAIL is never masked by additional anomalies. PASS only means the archived metrics passed the bound gate; it does not prove any answer is factually correct. The plugin does not re-evaluate, does not modify archives, and performs no publish or Git operations.
+Python remains the numeric judge for replay; B2 selects the separate `builtin-threshold-v1` or `builtin-threshold-v2` engine by policy. REVIEW never becomes PASS, and a confirmed FAIL is never masked by additional anomalies. PASS only means the archived metrics passed the bound gate; it does not prove any answer is factually correct. The plugin does not re-evaluate, does not modify archives, and performs no publish or Git operations.
 
 ---
 
@@ -18,7 +18,7 @@ The legacy VeriScope instructions below apply to replay. B2 input, judgments and
 
 Accepts the original VeriScope archives plus B2 GateArchiveV1 and the specified Ragas records layout. Unsupported formats are rejected, not guessed or converted.
 
-## Use existing scores directly: B2 (0.5.0 local candidate)
+## Use existing scores directly: B2 (0.6.0 local candidate)
 
 Already have Ragas scores? Export the score JSON, specify the metrics and thresholds, and let the plugin check the gate and save a receipt. **No VeriScope installation and no new model scoring calls.**
 
@@ -31,13 +31,15 @@ $env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
 node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy examples/builtin/policy.json --format ragas-records-v1 --json
 ```
 
-- Accepts `GateArchiveV1` or the Ragas `result.to_pandas().to_json(orient="records")` layout, with explicit `GatePolicyV1`; no field or threshold guessing.
-- Uses an equally weighted mean of all provided rows. Missing values are neither filled nor skipped. Any complete failing metric yields FAIL; otherwise incomplete evidence yields REVIEW; all required metrics must be complete and passing for PASS.
+- Accepts `GateArchiveV1` or the Ragas `result.to_pandas().to_json(orient="records")` layout, with an explicit `GatePolicyV1` or `GatePolicyV2`; no field or threshold guessing.
+- Uses an equally weighted mean of all provided rows. Missing values are neither filled nor skipped. A failing complete mean or a known valid row violating an explicit row threshold yields FAIL; otherwise incomplete evidence yields REVIEW. All required data and constraints must pass for PASS.
 - Never renames `faithfulness` to `pos_faithfulness`. A B2 PASS is not the original gate verdict, does not establish factual correctness or score authenticity, and cannot reveal rows removed before export.
 - DSH/MCP expose check; the installed CLI is `veriscope-check`. `doctor({engine:"builtin"})` does not probe Python. status/list handle both receipt versions.
 - B2 uses ReceiptV2 and text only, without bind/complete. DSH JSON/Markdown export works; B2 share is unsupported. Records are kept indefinitely with no automatic cleanup.
 
-See packaged `docs/B2.md`, `schemas/` and `examples/builtin/`. Examples are constructed from documentation, not real evaluations. Version 0.5.0 is unpublished; candidate evidence is in `docs/acceptance-b2-v0.5.0.json`. Earlier host/Ubuntu results do not verify this candidate.
+**A passing mean can still reveal a weak row.** Per-metric diagnostics show the worst valid row and count rows outside the mean threshold; diagnostics do not change the verdict. Opt in with `GatePolicyV2` and `row_threshold`, using the metric's existing direction and unit. In the constructed example, a mean of 0.81 includes a 0.41 row: mean-only can PASS, while requiring every row to be ≥0.5 yields FAIL. V2 compares original JSON numeric tokens as exact decimals; V1 floating-point decisions remain unchanged.
+
+See packaged `docs/B2.md`, `schemas/` and `examples/builtin/`. Examples are constructed, not real evaluations. Version 0.6.0 is an unpublished local candidate. Historical 0.5.0 evidence remains in `docs/acceptance-b2-v0.5.0.json`; it does not verify this candidate's host or Ubuntu behavior.
 
 ## Original VeriScope path: quick start
 
@@ -65,7 +67,7 @@ To constrain task completion, bind the current check to a task. Only a bound rec
 
 ## Install and configure
 
-This document covers the **0.5.0 local candidate**, with a DSH plugin and the independent `veriscope-mcp` entry. Check the [npm package page](https://www.npmjs.com/package/dsh-plugin-veriscope) for available releases; MCP setup and pending checks are described below. The verified DSH CLI requires an explicit profile; these examples use the isolated `veriscope-demo` profile:
+This document covers the **0.6.0 local candidate**, with a DSH plugin and the independent `veriscope-mcp` entry. Check the [npm package page](https://www.npmjs.com/package/dsh-plugin-veriscope) for available releases; MCP setup and pending checks are described below. The verified DSH CLI requires an explicit profile; these examples use the isolated `veriscope-demo` profile:
 
 ```powershell
 # install
@@ -120,7 +122,7 @@ Prepare a dedicated profile and the matching host CLI first; the install command
 
 ## Cross-host MCP
 
-0.5.0 adds check, bringing MCP to five tools. Windows host calls and Ubuntu remote CI, including real replay against the pinned upstream, both passed; remaining pending items are recorded in `docs/acceptance-b2-v0.5.0.json`. The following paragraph is historical 0.4.0 evidence.
+MCP still exposes five tools; V2 policies use the existing check/status/list tools. Historical 0.5.0 host evidence and pending items remain in `docs/acceptance-b2-v0.5.0.json` and do not verify this candidate. The following paragraph is historical 0.4.0 evidence.
 
 For 0.4.0, actual tool calls were verified in isolated Claude Code and Codex host control runtimes without model conversations. Real replay passed on Windows and Ubuntu. Claude returns tool errors as text through its control API; complete structured error delivery remains unverified. Start source `mcp.js` with an absolute Node path; see [MCP setup](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md) for configuration and isolated examples. It does not load the DSH SDK. The first MCP adapter exposes only `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, and `veriscope_gate_list`, with no native result card. batch/export and bind/complete remain DSH-only. Session bindings are not ported; MCP reports have `execution.session_id: null`.
 

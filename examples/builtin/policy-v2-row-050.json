@@ -1,0 +1,8 @@
+{
+  "schema_version": "GatePolicyV2",
+  "aggregation": "mean",
+  "population": "all_provided_rows",
+  "rules": [
+    { "metric": "faithfulness", "unit": "ratio", "operator": "gte", "threshold": 0.81, "row_threshold": 0.5, "range": { "min": 0, "max": 1 } }
+  ]
+}

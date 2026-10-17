@@ -5,6 +5,7 @@ import { createToolCatalog, toolParameters } from './lib/tools.js'
 import { toValueSpec } from './lib/schema.js'
 import { pluginConfiguration, sessionIdentity } from './lib/managed.js'
 import { registerStatusBridge } from './lib/bridge.js'
+import { isBuiltinEngine } from './lib/builtin-rules.js'
 const { defineTool } = await loadDshSdk()
 export const name = 'dsh-plugin-veriscope'
 export const inject = ['tools']
@@ -28,8 +29,9 @@ export function apply(ctx, rawConfig = {}) {
   }
   const presentationMeta = (args, value, render) => {
     const current = value.schema_version === 'GateStatusV1' ? value : value.status?.schema_version === 'GateStatusV1' ? value.status : null
-    if (value.engine?.id === 'builtin-threshold-v1' || current?.engine?.id === 'builtin-threshold-v1') return {
-      veriscope: { engine_id: 'builtin-threshold-v1', builtin_text: render(value) },
+    const builtin = isBuiltinEngine(value.engine) ? value.engine : isBuiltinEngine(current?.engine) ? current.engine : null
+    if (builtin) return {
+      veriscope: { engine_id: builtin.id, builtin_text: render(value) },
     }
     const inputError = value.execution?.errors?.find(item => item.diagnostic)
     const diagnostic = inputError?.diagnostic

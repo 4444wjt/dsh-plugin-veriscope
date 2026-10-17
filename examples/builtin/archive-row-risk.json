@@ -1,0 +1,11 @@
+{
+  "schema_version": "GateArchiveV1",
+  "source": { "producer": "constructed-documentation-example", "version": null },
+  "rows": [
+    { "id": "case-1", "scores": { "faithfulness": 0.92 } },
+    { "id": "case-2", "scores": { "faithfulness": 0.41 } },
+    { "id": "case-3", "scores": { "faithfulness": 0.95 } },
+    { "id": "case-4", "scores": { "faithfulness": 0.87 } },
+    { "id": "case-5", "scores": { "faithfulness": 0.90 } }
+  ]
+}

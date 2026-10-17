@@ -4,13 +4,13 @@
 
 > 이 문서는 중국어 원문의 번역입니다. 해석이 다를 경우 중국어 원문을 우선합니다. 모든 절을 번역했지만 세부 조건은 원문도 함께 확인하십시오.
 
-> **0.5.0 로컬 후보 업그레이드 안내**: 기존 영수증의 현재 유효성은 REVIEW가 되지만 과거 PASS／FAIL 판정은 다시 쓰지 않습니다. 업그레이드 전에 전체 상태 디렉터리와 원본 아카이브를 백업하고 플러그인 밖의 영구 상태 디렉터리를 사용하십시오. 패키지 안의 `.local`은 재설치 시 사라질 수 있으며 영수증 내보내기만으로는 완전한 백업이 되지 않습니다. replay를 다시 실행해 새 버전의 영수증을 받으십시오.
+> **0.6.0 로컬 후보 업그레이드 안내**: 기존 영수증의 현재 유효성은 REVIEW가 되지만 과거 PASS／FAIL 판정은 다시 쓰지 않습니다. 업그레이드 전에 전체 상태 디렉터리와 원본 아카이브를 백업하고 플러그인 밖의 영구 상태 디렉터리를 사용하십시오. 패키지 안의 `.local`은 재설치 시 사라질 수 있으며 영수증 내보내기만으로는 완전한 백업이 되지 않습니다. ReceiptV1은 replay, ReceiptV2는 check를 다시 실행하십시오.
 
 기존 점수는 Node 독립 임계값 게이트로 확인하고, VeriScope 아카이브는 원래 Python Quality Gate로 리플레이합니다. 두 경로 모두 **PASS／FAIL／REVIEW**와 확인 가능한 로컬 영수증을 반환합니다.
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 수동 동기화 미러](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · VeriScope 본체: [메인](https://github.com/4444wjt/RAG_Evaluation_Demo)／[미러](https://gitee.com/kkbushishou/rag-hallucination-evaluator). 이슈와 PR은 GitHub로.
 
-원래 replay의 수치 판정자는 Python으로 유지합니다. B2는 별도의 `builtin-threshold-v1`과 명시적 정책을 사용합니다.REVIEW가 PASS로 바뀌지 않으며, 확정된 FAIL이 부수적 이상으로 덮이지 않습니다. PASS는 아카이브 지표가 연결된 게이트를 통과했다는 것만 뜻하며, 답변의 사실 정확성을 증명하지 않습니다. 이 플러그인은 재평가하지 않고, 아카이브를 수정하지 않으며, 배포나 Git 작업을 수행하지 않습니다.
+원래 replay의 수치 판정자는 Python으로 유지합니다. B2는 정책에 따라 별도의 `builtin-threshold-v1` 또는 `builtin-threshold-v2`를 사용합니다. REVIEW가 PASS로 바뀌지 않으며, 확정된 FAIL이 부수적 이상으로 덮이지 않습니다. PASS는 아카이브 지표가 연결된 게이트를 통과했다는 것만 뜻하며, 답변의 사실 정확성을 증명하지 않습니다. 이 플러그인은 재평가하지 않고, 아카이브를 수정하지 않으며, 배포나 Git 작업을 수행하지 않습니다.
 
 ---
 
@@ -18,7 +18,7 @@
 
 원래 VeriScope 아카이브와 B2 GateArchiveV1 및 지정된 Ragas records 형식을 지원합니다. 미지원 형식은 거부하며 추측하거나 환산하지 않습니다.
 
-## 기존 점수 직접 확인: B2(0.5.0 로컬 후보 버전)
+## 기존 점수 직접 확인: B2(0.6.0 로컬 후보 버전)
 
 이미 Ragas 점수가 있다면 점수 JSON을 내보내고, 확인할 지표와 임계값을 정해 게이트 판정과 영수증 저장을 실행할 수 있습니다. **VeriScope 설치나 새로운 모델 채점은 필요하지 않습니다.**
 
@@ -31,13 +31,15 @@ $env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
 node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy examples/builtin/policy.json --format ragas-records-v1 --json
 ```
 
-- `GateArchiveV1`과 Ragas `result.to_pandas().to_json(orient="records")` 형식을 지원하며 명시적인 `GatePolicyV1`을 사용합니다. 필드나 임계값을 추측하지 않습니다.
-- 제공된 모든 행의 동일 가중 평균을 사용합니다. 결측값을 0으로 채우거나 제외하지 않습니다. 완전한 지표 중 하나라도 미달이면 FAIL, 그 외 정보 부족은 REVIEW, 필요한 모든 지표가 완전하고 기준을 충족해야 PASS입니다.
+- `GateArchiveV1`과 Ragas `result.to_pandas().to_json(orient="records")` 형식을 지원하며 `GatePolicyV1` 또는 `GatePolicyV2`를 명시합니다. 필드나 임계값을 추측하지 않습니다.
+- 제공된 모든 행의 동일 가중 평균을 사용합니다. 결측값을 0으로 채우거나 제외하지 않습니다. 완전한 평균이 미달하거나 유효한 행이 명시된 개별 임계값을 위반하면 FAIL입니다. 그 외 정보 부족은 REVIEW이며 모든 데이터와 조건을 충족해야 PASS입니다.
 - `faithfulness`를 `pos_faithfulness`로 바꾸지 않습니다. B2 PASS는 원래 게이트와 같은 판정이 아니며, 점수의 진실성이나 답변의 사실 정확성을 증명하지 않습니다. 내보내기 전에 삭제된 행도 발견할 수 없습니다.
 - DSH／MCP에서 check, 설치 후 CLI에서 `veriscope-check`를 제공합니다. `doctor({engine:"builtin"})`는 Python을 확인하지 않습니다. status／list는 두 영수증 버전을 처리합니다.
 - B2는 ReceiptV2와 텍스트만 사용하며 bind／complete에는 사용하지 않습니다. DSH의 JSON／Markdown 내보내기는 지원하지만 B2 share는 지원하지 않습니다. 기록은 무기한 보관하며 자동 정리하지 않습니다.
 
-동봉된 `docs/B2.md`, `schemas/`, `examples/builtin/`을 참조하십시오. 예제는 문서에 따른 구성 예이며 실제 평가가 아닙니다. 0.5.0은 미출시 상태입니다. 후보 검증은 `docs/acceptance-b2-v0.5.0.json`에 기록하고 이전 호스트／Ubuntu 결과를 재사용하지 않습니다.
+**평균이 통과해도 가장 낮은 성능의 행을 확인할 수 있습니다.** 지표마다 최악의 유효 행과 평균 임계값 미달 행 수를 보여 줍니다. 진단만으로 판정은 바뀌지 않습니다. 개별 행을 제한하려면 `GatePolicyV2`의 `row_threshold`를 명시하며 같은 방향과 단위를 사용합니다. 구성 예제에서는 평균 0.81에 0.41인 행이 포함되어 평균만 검사하면 PASS, 모든 행 ≥0.5를 요구하면 FAIL입니다. V2는 원본 JSON 숫자 토큰을 정확한 십진수로 비교하며 V1 부동소수점 판정은 유지합니다.
+
+동봉된 `docs/B2.md`, `schemas/`, `examples/builtin/`을 참조하십시오. 예제는 구성 예이며 실제 평가가 아닙니다. 0.6.0은 미출시 로컬 후보입니다. 0.5.0의 과거 증거는 `docs/acceptance-b2-v0.5.0.json`에 보존하며 본 후보의 호스트／Ubuntu 검증을 대신하지 않습니다.
 
 ## 원래 VeriScope 경로: 설정 후 시작
 
@@ -65,7 +67,7 @@ node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy ex
 
 ## 설치와 설정
 
-이 문서는 **0.5.0 로컬 후보**에 해당하며 DSH 플러그인과 독립적인 `veriscope-mcp` 진입점을 제공합니다. 사용 가능한 배포 버전은 [npm 패키지 페이지](https://www.npmjs.com/package/dsh-plugin-veriscope)에서 확인하십시오. MCP 설정과 검증 대기 범위는 아래에 안내합니다. 검증된 DSH CLI에서는 프로필을 명시합니다. 아래는 전용 `veriscope-demo`를 사용합니다.
+이 문서는 **0.6.0 로컬 후보**에 해당하며 DSH 플러그인과 독립적인 `veriscope-mcp` 진입점을 제공합니다. 사용 가능한 배포 버전은 [npm 패키지 페이지](https://www.npmjs.com/package/dsh-plugin-veriscope)에서 확인하십시오. MCP 설정과 검증 대기 범위는 아래에 안내합니다. 검증된 DSH CLI에서는 프로필을 명시합니다. 아래는 전용 `veriscope-demo`를 사용합니다.
 
 ```powershell
 # 설치
@@ -120,7 +122,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 여러 호스트용 MCP
 
-0.5.0에서 check를 추가하여 MCP는 다섯 도구를 제공합니다. Windows 호스트 실호출과 Ubuntu 원격 CI(고정 업스트림 실제 리플레이 포함)는 통과했습니다. 남은 미검증 범위는 `docs/acceptance-b2-v0.5.0.json`에 기록합니다. 다음은 0.4.0의 과거 검증입니다.
+MCP는 계속 다섯 도구를 제공합니다. V2 정책도 기존 check／status／list를 사용합니다. 0.5.0의 과거 증거와 미검증 범위는 `docs/acceptance-b2-v0.5.0.json`을 참조하며 본 후보 검증과 구분합니다. 다음은 0.4.0의 과거 검증입니다.
 
 0.4.0에서는 격리된 Claude Code／Codex 호스트 제어 인터페이스에서 실제 도구 호출을 검증했으며 모델 대화는 하지 않았습니다. Windows와 Ubuntu의 실제 리플레이도 통과했습니다. Claude 제어 API의 오류 경로는 텍스트만 반환하므로 완전한 구조화 오류 전달은 미검증입니다. 절대 Node 경로로 소스 `mcp.js`를 실행합니다. 설정과 격리 환경 예시는 [MCP 연결 안내](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)를 보십시오. DSH SDK를 불러오지 않습니다. 첫 MCP 버전은 `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, `veriscope_gate_list` 네 도구만 제공하며 네이티브 카드는 없습니다. batch／export와 bind／complete는 DSH 전용입니다. 세션 바인딩은 이식하지 않으며 MCP 보고서의 `execution.session_id`는 `null`입니다.
 

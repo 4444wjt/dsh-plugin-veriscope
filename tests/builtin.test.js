@@ -84,7 +84,7 @@ test('threshold comparison never rounds the result or invents a tolerance', () =
 })
 const badPolicies = [
   p => delete p.population, p => delete p.aggregation, p => p.aggregation = 'median', p => p.population = 'positive',
-  p => p.schema_version = 'GatePolicyV2', p => p.extra = true, p => p.rules = [], p => p.rules.push({ ...p.rules[0] }),
+  p => p.schema_version = 'GatePolicyFuture', p => p.extra = true, p => p.rules = [], p => p.rules.push({ ...p.rules[0] }),
   p => delete p.rules[0].unit, p => delete p.rules[0].threshold, p => p.rules[0].threshold = '0.8', p => p.rules[0].threshold = Infinity,
   p => p.rules[0].operator = 'gt', p => p.rules[0].range = {}, p => p.rules[0].range = { min: 1, max: 0 },
   p => p.rules[0].range = { min: 0, max: .7 }, p => p.rules[0].filter = 'positive', p => p.rules[0].metric = '',

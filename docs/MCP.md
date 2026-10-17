@@ -1,14 +1,20 @@
 # MCP 接入与验收
 
-此文对应 **0.5.0 本地候选**，0.4.0 实测记录仅为历史。安装包提供 `veriscope-mcp`，源码入口为 `mcp.js`。可用版本以 [npm 包页面](https://www.npmjs.com/package/dsh-plugin-veriscope)为准；以下宿主示例使用隔离配置，不修改默认宿主配置。Claude／Codex 实际工具调用与 Linux 真实回放的完成状态单独记录。
+此文对应 **0.6.0 本地候选**，0.4.0／0.5.0 实测记录仅为历史。安装包提供 `veriscope-mcp`，源码入口为 `mcp.js`。可用版本以 [npm 包页面](https://www.npmjs.com/package/dsh-plugin-veriscope)为准；以下宿主示例使用隔离配置，不修改默认宿主配置。Claude／Codex 实际工具调用与 Linux 真实回放的完成状态单独记录。
 
-> **升级前备份**：0.4.0 改变插件绑定范围，旧回执的当前有效性进入 REVIEW，不改写历史 PASS／FAIL。请先备份完整状态目录及原归档，持久状态目录应放在插件外；单独导出回执不是完整备份。重新 replay 后取得新版本回执。
+> **升级前备份**：0.6.0 的代码与版本变化使旧回执的当前有效性进入 REVIEW，不改写历史 PASS／FAIL。请先备份完整状态目录及原归档，持久状态目录应放在插件外；单独导出回执不是完整备份。ReceiptV1 重新 replay，ReceiptV2 重新 check。
+
+## 0.6.0：显式逐条阈值与十进制语义
+
+工具名称、参数与配置入口不变。check 按策略选择引擎：GatePolicyV1 保持原浮点决策；GatePolicyV2 使用 JSON 原数字词元作精确十进制比较，并允许每项规则显式添加 `row_threshold`，沿用该指标的方向和单位。均值阈值仍须满足，逐条条件不是替代均值。
+
+两版都报告最差有效行及未达均值阈值的条数，诊断不改裁决。V2 已知有效行违反逐条阈值时为 FAIL，即使另有缺失；没有已知违反但不完整为 REVIEW。B2 仍不接入 bind／complete；完整格式和构造示例见 [B2 说明](B2.md)。0.5.0 既有宿主证据不作为这些新路径的验收结论。
 
 ## 0.5.0 新增独立阈值门禁
 
 `veriscope_gate_check({archive_path,policy_path,format?})` 只需要 Node 和显式 `VERISCOPE_STATE_DIR`，不依赖 VeriScope、Python、pandas 或 Ragas。`doctor({engine:"builtin"})` 不探测上游。现为五个 MCP 工具、九个 DSH 工具；B2 返回文本与 structuredContent，不提供卡片或受管完成能力。输入、策略及 ReceiptV2 详见 [B2 说明](B2.md)。
 
-仅使用 B2 时，下面的宿主 `env` 示例可只保留 `VERISCOPE_STATE_DIR`；使用 Node 绝对路径和本包 mcp.js，清除继承的 VeriScope 配置。状态根仍须外置持久目录，不读取 .env。B2 的状态检查不探测 Python。0.5.0 实测与 pending 项见 `acceptance-b2-v0.5.0.json`；下文的 0.4.0 平台和宿主成绩不代表本候选版已通过。
+仅使用 B2 时，下面的宿主 `env` 示例可只保留 `VERISCOPE_STATE_DIR`；使用 Node 绝对路径和本包 mcp.js，清除继承的 VeriScope 配置。状态根仍须外置持久目录，不读取 .env。B2 的状态检查不探测 Python。0.5.0 历史实测与 pending 项见 `acceptance-b2-v0.5.0.json`；下文的旧版平台和宿主成绩不代表本候选版已通过。
 
 ## 能力与判定边界
 
@@ -145,7 +151,7 @@ Ubuntu 远端 CI 已使用固定上游提交、Python 3.11.9、pandas 3.0.6 与�
 
 ## 0.4.0 历史部署复核
 
-下表及其 266 项测试统计属于 0.4.0 历史记录。本轮 0.5.0：Windows 共 363 项测试，361 通过、2 个 POSIX 专项跳过；Ubuntu 未运行。B2 三宿主实调用与限制以 `acceptance-b2-v0.5.0.json` 为准。
+下表及其 266 项测试统计属于 0.4.0 历史记录。0.5.0 的 Windows 本地历史记录为 363 项测试，361 通过、2 个 POSIX 专项跳过；该次本地运行未执行 Ubuntu。0.5.0 后续宿主实调用与平台结果以 `acceptance-b2-v0.5.0.json` 为准，不替代 0.6.0 验收。
 
 | 项目 | 本轮结果 | 剩余范围 |
 |---|---|---|

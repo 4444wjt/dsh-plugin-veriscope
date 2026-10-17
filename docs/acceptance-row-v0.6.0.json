@@ -1,0 +1,236 @@
+{
+  "schema_version": "RowThresholdAcceptanceV1",
+  "version": "0.6.0",
+  "delivery": "local_candidate_uncommitted_unpublished",
+  "baseline_commit": "fe7008efa0ca4d410c0746c0a36b94182c4b141f",
+  "recorded_at_utc": "2026-10-17T17:43:44.349747+00:00",
+  "scope": "Per-metric diagnostics, opt-in row thresholds and separately versioned decimal comparison; no scoring.",
+  "tests": {
+    "tests": 412,
+    "pass": 410,
+    "fail": 0,
+    "skipped": 2,
+    "cancelled": 0,
+    "baseline_tests": 363,
+    "added_tests": 49,
+    "command": "node --test --test-reporter=tap",
+    "node": "v24.21.0",
+    "platform": "Windows",
+    "skips": "Two existing POSIX-specific cases; no added test skipped."
+  },
+  "semantics": {
+    "GatePolicyV1": "Original Number/Kahan ordered mean decisions retained; diagnostics do not affect verdict.",
+    "GatePolicyV2": "Exact original JSON numeric tokens; inclusive gte/lte comparisons of sum versus threshold*count, exact ranges and optional per-row threshold.",
+    "row_threshold": "Explicit per metric; inherits operator/unit/range; a known valid row violation is FAIL even with another missing/invalid row.",
+    "limits": {
+      "token_characters": 1024,
+      "absolute_written_exponent": 1024,
+      "absolute_effective_exponent": 1024
+    },
+    "no_default_row_floor": true,
+    "known_FAIL_preserved_on_recording_error": true,
+    "approximate_Number_display_is_not_decision_basis": true
+  },
+  "demonstration": {
+    "provenance": "Constructed protocol fixture, not real evaluation or human correctness labels",
+    "scores": [
+      0.92,
+      0.41,
+      0.95,
+      0.87,
+      0.9
+    ],
+    "V1_mean_threshold_0_8": "PASS + one diagnostic row",
+    "V1_mean_threshold_0_81": "FAIL, original floating-point behavior",
+    "V2_mean_threshold_0_81": "PASS, exact sum 4.05 / 5",
+    "V2_plus_row_threshold_0_5": "FAIL, row-2 = 0.41"
+  },
+  "independent_constructed_checks": {
+    "v1_compatibility": {
+      "seed": 17539,
+      "samples_requested": 5000,
+      "samples_completed": 5000,
+      "mismatch_count": 0,
+      "status": "passed"
+    },
+    "v2_integer_reference": {
+      "seed": 3719,
+      "samples_requested": 3000,
+      "samples_completed": 3000,
+      "mismatch_count": 0,
+      "status": "passed"
+    },
+    "not_real_accuracy": true
+  },
+  "host_acceptance": {
+    "DSH": {
+      "status": "passed",
+      "host": "DSH NEXT 2.0.18-next",
+      "calls": 25,
+      "method": "Real ToolRuntime, isolated profile; synthetic conversation events, no model"
+    },
+    "Claude_Code": {
+      "status": "passed",
+      "version": "2.1.278",
+      "method": "Real stream-json MCP control call; no user message",
+      "structured_error_delivery": "pending: runtime delivers execution errors as text"
+    },
+    "Codex": {
+      "status": "passed",
+      "version": "0.163.0",
+      "method": "Real app-server MCP tool call; no model turn"
+    },
+    "cross_entry_cases": 8,
+    "all_fields_identical_except_allowlist": true,
+    "automatic_model_tool_selection": "not_tested"
+  },
+  "package": {
+    "files": 55,
+    "tarball_bytes": 112173,
+    "unpacked_bytes": 350260,
+    "sha256": "47eec01531ff6a82284270dedcd4cc3a6ba3cec7367205a4db9b462d74fe1cb9",
+    "runtime_dependencies": [],
+    "DSH_optional_peers_installed": false,
+    "python_on_PATH": false,
+    "source_matches_installed_files": true
+  },
+  "historical_receipts": {
+    "prior_version": "0.5.0",
+    "actual_records": 6,
+    "history_readable": true,
+    "current": "REVIEW / STALE due to code/version changes",
+    "bytes_unchanged": true,
+    "not_rejudged": true
+  },
+  "legacy_replay": {
+    "status": "passed",
+    "cases": 4,
+    "real_Python": true,
+    "includes_historical_FAIL": true,
+    "upstream_unchanged": true
+  },
+  "browser": {
+    "blocks": 11,
+    "legacyCards": 0,
+    "sample": {
+      "font": "15px",
+      "color": "rgb(237, 233, 224)",
+      "background": "rgb(23, 25, 24)",
+      "borderLeftColor": "rgb(242, 200, 121)",
+      "buttons": 0
+    },
+    "hasRowRule": true,
+    "hasDiagnostic": true,
+    "knownBadRow": true,
+    "completeDenial": true,
+    "url": "http://127.0.0.1:4197/",
+    "profile": "veriscope-b2-v060"
+  },
+  "isolation": {
+    "passed": true,
+    "upstream_files": 14,
+    "upstream_HEAD_status_refs_unchanged": true,
+    "default_host_configs_unchanged": true,
+    "plugin_HEAD_refs_unchanged": true
+  },
+  "model_calls": {
+    "evaluation": 0,
+    "conversation": 0
+  },
+  "git_writes": false,
+  "published": false,
+  "pending": [
+    "Remote Ubuntu CI and Linux runtime acceptance for this candidate.",
+    "Claude structured execution-error delivery beyond text."
+  ],
+  "limits": [
+    "Checks provided scores only; does not prove scores or answers factually correct.",
+    "Cannot detect rows deleted before export.",
+    "No actual model routing/selection test.",
+    "No real-world accuracy, adoption or cost-saving claim."
+  ],
+  "artifacts": [
+    {
+      "relative_to_evidence_root": "tests-final.tap",
+      "sha256": "f70f467bb2038c5fec8c5f83778ccf29ed3f5621cca1276ccfb17b9bfac6d682"
+    },
+    {
+      "relative_to_evidence_root": "pack.json",
+      "sha256": "4a5fea1639fa2bfe9df1723bc8ec6b604dfe4d602a1dce5764f7303e041fcc74"
+    },
+    {
+      "relative_to_evidence_root": "package-manifest.json",
+      "sha256": "6b4a85cc4f6a4edf78acdb9ace574f3e66b9eedc3f3133a37b6b53b43e9b8254"
+    },
+    {
+      "relative_to_evidence_root": "install.txt",
+      "sha256": "77385c46940ab1f4eea3623a3de596e51cc4b6cc8800d4bb9b204978eb8e48c3"
+    },
+    {
+      "relative_to_evidence_root": "dependency-tree.json",
+      "sha256": "94a4bf84f70f9e7979c29ddcd95a624e1ede0ae08e08b114895a4ccdbb4cd878"
+    },
+    {
+      "relative_to_evidence_root": "consumer-verification.json",
+      "sha256": "ab392db24123f923972f7e2cfdff2471b7c177e3f3d9ef4bcc8f09c26c07e6ec"
+    },
+    {
+      "relative_to_evidence_root": "cross-entry-comparison.json",
+      "sha256": "fd1e0d4250f9f0540b201e5c5b9d692edb961b859a42cd4cc753793d3a42253f"
+    },
+    {
+      "relative_to_evidence_root": "history-upgrade.json",
+      "sha256": "4b028cb38d8b04c8c7218733ca1601fb62d5a240b8aa11fd4fee3d274e7e40d0"
+    },
+    {
+      "relative_to_evidence_root": "independent-review.mjs",
+      "sha256": "e17cc3a399d9d576e7d892ebf382281beaa32891efaef8bd3f8b0374362cddf3"
+    },
+    {
+      "relative_to_evidence_root": "independent-review.json",
+      "sha256": "1e96a862c358adddd51fb212bc90cf83251d935016a4709852a36306e81ad8ba"
+    },
+    {
+      "relative_to_evidence_root": "isolation-after.json",
+      "sha256": "83d83b95f804acdd42ca05114870fa1df9e6bfec90a366b48fdb2ebffae0893a"
+    },
+    {
+      "relative_to_evidence_root": "codex/acceptance.json",
+      "sha256": "966bab6d9088eeda2eeb210e058c2b5f84a01265e008b79e15094e3af4e0e426"
+    },
+    {
+      "relative_to_evidence_root": "codex/protocol.jsonl",
+      "sha256": "55003ec6ea4aca63fe2fcf7076b01ed9c6ff9f59f58d7cfea7d6d5094b36e9b1"
+    },
+    {
+      "relative_to_evidence_root": "claude/acceptance.json",
+      "sha256": "632c8ac551a378f60bbf22dc5889194f47242bc900a847a11312d1b9763a5bc5"
+    },
+    {
+      "relative_to_evidence_root": "claude/protocol.jsonl",
+      "sha256": "792926966d92e21c861306791247bd84ca81cee5739558fb1ea4917130101d46"
+    },
+    {
+      "relative_to_evidence_root": "dsh/acceptance.json",
+      "sha256": "5de34026022556056bb93d35cdd604ffe8d2422b5483777748147624db30da8d"
+    },
+    {
+      "relative_to_evidence_root": "dsh/source-manifest.json",
+      "sha256": "6fb8ba5de9c16ad9df63e84ee6b29727b36eb219dafc990ed709f1390b4ca860"
+    },
+    {
+      "relative_to_evidence_root": "dsh/browser-inspection.json",
+      "sha256": "e59227a28677934be9e19b3211b143ef8c3719428ad3b4f74f31118a0ed235c6"
+    },
+    {
+      "relative_to_evidence_root": "legacy-state/verification/mcp-real-python.json",
+      "sha256": "7b65f64db78c1c9075aa573a7b0955a57965657715ce16970f91e9dc550e3b17"
+    }
+  ],
+  "local_evidence_root": "C:\\Users\\THUNDER\\Documents\\Codex\\2026-10-15\\files-pasted-by-the-user-codex\\outputs\\b2-row-v060-20261017",
+  "reproduction": {
+    "tests": "node --test",
+    "example": "node scripts/check.mjs --archive examples/builtin/archive-row-risk.json --policy examples/builtin/policy-v2-row-050.json --json",
+    "state": "Set explicit VERISCOPE_STATE_DIR before invocation; do not use default host profile."
+  }
+}

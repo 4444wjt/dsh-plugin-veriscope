@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GatePolicyV2",
+  "type": "object",
+  "required": ["schema_version", "aggregation", "population", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "GatePolicyV2" },
+    "aggregation": { "const": "mean" },
+    "population": { "const": "all_provided_rows" },
+    "rules": {
+      "type": "array", "minItems": 1, "maxItems": 100,
+      "items": {
+        "type": "object", "required": ["metric", "unit", "operator", "threshold"], "additionalProperties": false,
+        "properties": {
+          "metric": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S" },
+          "unit": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S" },
+          "operator": { "enum": ["gte", "lte"] },
+          "threshold": { "type": "number", "description": "全部输入记录的均值阈值；使用原始 JSON 数字词元作精确十进制比较。" },
+          "row_threshold": { "type": "number", "description": "可选逐条阈值；沿用本规则的 operator、unit 和 range。省略时不增加逐条判定。" },
+          "range": {
+            "type": "object", "minProperties": 1, "additionalProperties": false,
+            "properties": { "min": { "type": "number" }, "max": { "type": "number" } }
+          }
+        }
+      }
+    }
+  },
+  "description": "指标不得重复；range.min <= range.max，threshold 与 row_threshold 必须在声明范围内。所有数值须为有限 JSON 数字；运行时另校验数字词元长度和十进制指数限制，Schema 校验不能替代运行时校验。"
+}
