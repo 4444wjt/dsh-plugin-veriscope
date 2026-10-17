@@ -19,7 +19,7 @@ window.__ModuleLoader__.load({
           const next = await response.json()
           if (next.schema_version !== 'GateStatusV1' || next.run_id !== runId || !['PASS', 'FAIL', 'REVIEW'].includes(next.current_verdict) || next.gate_passed !== (next.current_verdict === 'PASS' ? true : next.current_verdict === 'FAIL' ? false : null) || (next.current_verdict !== 'REVIEW' && (next.integrity !== 'VALID' || next.freshness !== 'FRESH'))) throw new Error('状态响应不完整，请使用文本工具核实。')
           if (seq === sequence.current) setValue(next)
-        } catch (caught) { if (seq === sequence.current && caught.name !== 'AbortError') setError(caught.message) }
+        } catch (caught) { if (seq === sequence.current && caught?.name !== 'AbortError') setError('无法确认当前状态，请重试或调用 veriscope_gate_status。') }
         finally { if (seq === sequence.current) setLoading(false) }
       }, [runId, sessionId])
       React.useEffect(() => { refresh(); return () => { ++sequence.current; abort.current?.abort() } }, [refresh])
