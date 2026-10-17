@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-veriscope",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Local archived-score threshold gates and VeriScope replay for DSH and MCP.",
   "author": {
     "name": "4444wjt"

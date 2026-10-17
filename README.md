@@ -2,13 +2,13 @@
 
 **中文** · [English](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.en.md) · [日本語](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ja.md) · [한국어](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ko.md)
 
-> **0.5.0 本地候选升级提示**：旧回执的当前有效性将进入 REVIEW，历史 PASS／FAIL 不会改写。升级前请备份完整状态目录及原归档，并使用插件外的持久状态目录；包内 `.local` 可能随重装丢失，单独导出回执不是完整备份。重新 replay 后取得新版本回执。
+> **0.6.0 本地候选升级提示**：旧回执的当前有效性将进入 REVIEW，历史 PASS／FAIL 不会改写。升级前请备份完整状态目录及原归档，并使用插件外的持久状态目录；包内 `.local` 可能随重装丢失，单独导出回执不是完整备份。ReceiptV1 重新 replay，ReceiptV2 重新 check，取得新版回执。
 
 已有评分可用 Node 独立阈值门禁；VeriScope 归档仍可调用原 Python Quality Gate。两条路径均返回**通过／失败／待复核**及可检查的回执。
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手动镜像](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · 完整 VeriScope：[主仓库](https://github.com/4444wjt/RAG_Evaluation_Demo)／[镜像](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue 和 PR 请提交到 GitHub。
 
-原 replay 路径以 Python 为数值裁判；B2 使用独立的 `builtin-threshold-v1`，两者口径分开。REVIEW 永不转为 PASS，已确认 FAIL 不被附加异常遮盖。PASS 只说明归档指标通过所绑定门禁，不证明回答事实正确。插件不重新评测、不修改归档、不执行发布或 Git 操作。
+原 replay 路径以 Python 为数值裁判；B2 按策略使用独立的 `builtin-threshold-v1` 或 `builtin-threshold-v2`，两条路径口径分开。REVIEW 永不转为 PASS，已确认 FAIL 不被附加异常遮盖。PASS 只说明归档指标通过所绑定门禁，不证明回答事实正确。插件不重新评测、不修改归档、不执行发布或 Git 操作。
 
 ---
 
@@ -16,7 +16,7 @@
 
 支持原 VeriScope 归档，以及 B2 的 GateArchiveV1 和指定 Ragas records 布局。不支持的格式明确拒绝，不猜测或换算。
 
-## 已有评分直接用：B2（0.5.0 本地候选）
+## 已有评分直接用：B2（0.6.0 本地候选）
 
 已经用 Ragas 得到了评分？导出评分 JSON，写明要检查的指标和阈值，让插件执行门禁并保存回执。**无需安装 VeriScope，也不会重新调用模型评分。**
 
@@ -31,13 +31,15 @@ $env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
 node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy examples/builtin/policy.json --format ragas-records-v1 --json
 ```
 
-- 支持 `GateArchiveV1` 和 Ragas `result.to_pandas().to_json(orient="records")` 布局；策略为 `GatePolicyV1`，不猜测字段或阈值。
-- 对全部输入记录算等权均值；缺失值不补零、不跳过。任一完整指标确认不达标为 FAIL，其余缺证据为 REVIEW，全部完整达标才 PASS。
+- 支持 `GateArchiveV1` 和 Ragas `result.to_pandas().to_json(orient="records")` 布局；策略显式选择 `GatePolicyV1` 或 `GatePolicyV2`，不猜测字段或阈值。
+- 对全部输入记录算等权均值；缺失值不补零、不跳过。完整均值不达标，或已知有效行违反显式逐条阈值，为 FAIL；其余缺证据为 REVIEW，全部完整达标才 PASS。
 - 不把 `faithfulness` 改成 `pos_faithfulness`；B2 的 PASS 不等同原门禁，不证明评分或回答事实正确，也不检查导出前被删掉的记录。
 - DSH／MCP 都提供 check；CLI 安装后的命令为 `veriscope-check`。`doctor({engine:"builtin"})` 不探测 Python；status／list 支持两种回执。
 - B2 使用 ReceiptV2，首版只有文本，不接入 bind／complete；DSH 导出支持 JSON／Markdown，B2 暂不支持 share。回执仍无限保留，不自动清理。
 
-规范、策略和导出方式见包内 `docs/B2.md`、`schemas/`、`examples/builtin/`。样例为文档构造，非真实评测。0.5.0 尚未发布；当前候选验收见 `docs/acceptance-b2-v0.5.0.json`，不沿用旧版的宿主或 Ubuntu 结论。
+**均值通过，仍可看到最差一条。** 每指标显示最差有效行及未达均值阈值的条数；诊断本身不改裁决。需要逐条拦截时，用 `GatePolicyV2` 加 `row_threshold`，沿用该指标的方向和单位。例如构造分数的均值为 0.81、其中一条为 0.41：只查均值可 PASS，显式要求每条 ≥0.5 才 FAIL。V2 使用 JSON 原数字词元作精确十进制比较；V1 原浮点判定保持不变。
+
+规范、策略和导出方式见包内 `docs/B2.md`、`schemas/`、`examples/builtin/`。样例为文档构造，非真实评测。0.6.0 为本地候选，未发布；0.5.0 历史验收保留在 `docs/acceptance-b2-v0.5.0.json`，不替代本候选的宿主或 Ubuntu 验证。
 
 ## 原 VeriScope 路径：配置后上手
 
@@ -65,7 +67,7 @@ node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy ex
 
 ## 安装与配置
 
-本文对应 **0.5.0 本地候选**，提供 DSH 插件和独立的 `veriscope-mcp` 入口。npm 可用版本以[包页面](https://www.npmjs.com/package/dsh-plugin-veriscope)为准；MCP 配置与待验范围见下文。在已验证的 DSH CLI 中，需显式指定 profile；以下使用独立的 `veriscope-demo`：
+本文对应 **0.6.0 本地候选**，提供 DSH 插件和独立的 `veriscope-mcp` 入口。npm 可用版本以[包页面](https://www.npmjs.com/package/dsh-plugin-veriscope)为准；MCP 配置与待验范围见下文。在已验证的 DSH CLI 中，需显式指定 profile；以下使用独立的 `veriscope-demo`：
 
 ```powershell
 # 安装
@@ -121,7 +123,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 跨宿主 MCP
 
-0.5.0 新增 check，现为五个 MCP 工具。Windows 三宿主实调用与 Ubuntu 远端 CI（含固定上游真实回放）均已通过，未验范围见 `docs/acceptance-b2-v0.5.0.json`；macOS 与 Claude 完整结构化错误交付仍待验。以下仅回顾 0.4.0 历史验收。
+MCP 仍为五个工具；V2 策略复用 check／status／list，不增加入口。0.5.0 历史实调用与未验范围见 `docs/acceptance-b2-v0.5.0.json`，不替代本候选验证。以下仅回顾 0.4.0 历史验收。
 
 0.4.0 已在独立 Claude Code／Codex 宿主通过真实工具调用（控制接口，无模型对话），Windows 与 Ubuntu 真实回放均已验证。Claude 错误路径只返回文本，完整结构化交付仍有待验项，详见验收记录。使用绝对 Node 路径启动源码 `mcp.js`，配置及独立环境示例见 [MCP 接入说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)。无需加载 DSH SDK。首版只有 `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` 四工具，无原生卡片。batch／export 及 bind／complete 仍只在 DSH；会话绑定不会移植，MCP 报告的 `execution.session_id` 为 `null`。
 
