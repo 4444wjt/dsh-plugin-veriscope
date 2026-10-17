@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "contract": "audited-python-stdout-v1",
+  "captured_at_utc": "2026-10-16T11:48:41.735Z",
+  "exit_codes": {
+    "pass": 0,
+    "block": 1,
+    "invalid": 2
+  },
+  "files": {
+    "scripts/gate_replay.py": "3ecd6611da672ed9d22ccd5abf438e83e1f875fa589b175df692d0f26031b803",
+    "backend/config.py": "fd1651e31a583ef3d8a7c327b222080929bef2e938c0ea4616a45ee233b6bd63",
+    "backend/core/gate.py": "89d98d3ae8eeb076da163427a68477e59de3a8783c69d0e5bcd614cc29e9d6ae",
+    "backend/core/types.py": "48d64de58c4474d7c9fb1f41d66f801bbed08faf63a3a32507c11a159ffb736c",
+    "backend/core/attribution.py": "6860b3a43ce0b0e2c10f42e6f8672c9a6985942061aafb6d5aa261ae47ad605d",
+    "backend/core/regression.py": "17e2c10b6b41ac293f47d1491aad6493fab51c17df3e66f8f0cb779cbeac7564",
+    "backend/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/core/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

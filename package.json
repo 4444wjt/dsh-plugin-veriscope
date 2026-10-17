@@ -1,0 +1,46 @@
+{
+  "name": "dsh-plugin-veriscope",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VeriScope 离线门禁重放 · DSH 插件",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib",
+    "contracts",
+    "skills",
+    "cordis.patch.yml",
+    "scripts/replay.mjs"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "test": "node --test",
+    "replay": "node scripts/replay.mjs"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-alpha.2",
+    "@deepseek-ai/dsh-skill": "0.2.1-alpha.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-skill": {
+      "optional": true
+    }
+  },
+  "author": {
+    "name": "4444wjt"
+  }
+}

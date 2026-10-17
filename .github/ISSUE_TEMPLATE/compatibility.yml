@@ -1,0 +1,24 @@
+name: 兼容性记录
+description: 区分实际安装结果和推测的版本兼容
+title: '[兼容] '
+body:
+  - type: input
+    id: host
+    attributes:
+      label: 操作系统、Node、DSH 版本和载体
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: 安装来源与独立 profile 操作
+      description: 给出 tag／commit 和脱敏命令，注明哪些步骤实际执行。
+    validations:
+      required: true
+  - type: textarea
+    id: lifecycle
+    attributes:
+      label: 安装、工具调用、重启和卸载的分别结果
+      description: 未执行的项目写未测；ToolRuntime 调用和对话模型选工具分开描述。
+    validations:
+      required: true

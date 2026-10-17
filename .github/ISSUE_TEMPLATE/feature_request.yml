@@ -1,0 +1,22 @@
+name: 改进建议
+description: 用具体使用场景解释需求和收益
+title: '[建议] '
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 遇到了什么问题
+      description: 描述用户当前步骤及不便，不预设必须增加组件或模型。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议行为与验收方式
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: 对数据、费用和裁决边界的影响
+      description: 涉及上传、付费模型、自动修复或新评分时请明确说明；未知写未知。

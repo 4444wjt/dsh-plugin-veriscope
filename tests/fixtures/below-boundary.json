@@ -1,0 +1,34 @@
+{
+  "summary": [
+    {
+      "model": "fixture-model",
+      "faithfulness": 0.5,
+      "context_precision": 0.5,
+      "pos_faithfulness": 0.799999999999,
+      "pos_context_precision": 0.8
+    }
+  ],
+  "gate_passed": true,
+  "model_dfs": {
+    "fixture-model": [
+      {
+        "question": "人工构造边界样例",
+        "answer": "边界条件",
+        "contexts": [
+          "构造规则"
+        ],
+        "case_type": "positive",
+        "faithfulness": 0.799999999999,
+        "context_precision": 0.8
+      },
+      {
+        "question": "人工构造负样本",
+        "answer": "负样本",
+        "contexts": [],
+        "case_type": "negative",
+        "faithfulness": 0,
+        "context_precision": 0
+      }
+    ]
+  }
+}

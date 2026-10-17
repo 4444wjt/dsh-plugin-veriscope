@@ -1,0 +1,4 @@
+# dsh-plugin-veriscope bundle patch layer — applied to any profile listing this bundle.
+- insert:
+    - id: dsh-plugin-veriscope
+      name: dsh-plugin-veriscope
