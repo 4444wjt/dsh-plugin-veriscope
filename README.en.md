@@ -120,7 +120,7 @@ Prepare a dedicated profile and the matching host CLI first; the install command
 
 ## Cross-host MCP
 
-0.5.0 adds check, bringing MCP to five tools. Current Windows host calls and pending items are recorded in `docs/acceptance-b2-v0.5.0.json`; Ubuntu was not run this round. The following paragraph is historical 0.4.0 evidence.
+0.5.0 adds check, bringing MCP to five tools. Windows host calls and Ubuntu remote CI, including real replay against the pinned upstream, both passed; remaining pending items are recorded in `docs/acceptance-b2-v0.5.0.json`. The following paragraph is historical 0.4.0 evidence.
 
 For 0.4.0, actual tool calls were verified in isolated Claude Code and Codex host control runtimes without model conversations. Real replay passed on Windows and Ubuntu. Claude returns tool errors as text through its control API; complete structured error delivery remains unverified. Start source `mcp.js` with an absolute Node path; see [MCP setup](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md) for configuration and isolated examples. It does not load the DSH SDK. The first MCP adapter exposes only `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, and `veriscope_gate_list`, with no native result card. batch/export and bind/complete remain DSH-only. Session bindings are not ported; MCP reports have `execution.session_id: null`.
 

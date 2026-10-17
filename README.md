@@ -121,7 +121,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 跨宿主 MCP
 
-0.5.0 新增 check，现为五个 MCP 工具。本候选版的 Windows 三宿主实调用及未验范围见 `docs/acceptance-b2-v0.5.0.json`；Ubuntu 本轮未运行。以下仅回顾 0.4.0 历史验收。
+0.5.0 新增 check，现为五个 MCP 工具。Windows 三宿主实调用与 Ubuntu 远端 CI（含固定上游真实回放）均已通过，未验范围见 `docs/acceptance-b2-v0.5.0.json`；macOS 与 Claude 完整结构化错误交付仍待验。以下仅回顾 0.4.0 历史验收。
 
 0.4.0 已在独立 Claude Code／Codex 宿主通过真实工具调用（控制接口，无模型对话），Windows 与 Ubuntu 真实回放均已验证。Claude 错误路径只返回文本，完整结构化交付仍有待验项，详见验收记录。使用绝对 Node 路径启动源码 `mcp.js`，配置及独立环境示例见 [MCP 接入说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)。无需加载 DSH SDK。首版只有 `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` 四工具，无原生卡片。batch／export 及 bind／complete 仍只在 DSH；会话绑定不会移植，MCP 报告的 `execution.session_id` 为 `null`。
 

@@ -1,9 +1,9 @@
 {
   "schema_version": "B2AcceptanceV1",
   "version": "0.5.0",
-  "delivery": "local_candidate_uncommitted_unpublished",
+  "delivery": "published_npm_and_github_release",
   "baseline_commit": "c3e6c14246cf093a4f457d89f6fdd80aeccfd870",
-  "recorded_at_utc": "2026-10-17T16:05:32.788645+00:00",
+  "recorded_at_utc": "2026-10-17T16:43:42.748937+00:00",
   "positioning": "免装 VeriScope 的已有评分门禁；只检查所提供的数据，不证明评分或回答事实正确。",
   "tests": {
     "tests": 363,
@@ -14,7 +14,20 @@
     "command": "node --test --test-reporter=tap",
     "platform": "Windows",
     "node": "v24.21.0",
-    "skipped_scope": "Two existing POSIX-specific tests; no new skipped B2 tests; Ubuntu remote CI not run."
+    "skipped_scope": "Two existing POSIX-specific tests; no new skipped B2 tests.",
+    "ci": {
+      "workflow_run": "39050279639",
+      "jobs": 5,
+      "all_passed": true,
+      "matrix": [
+        "ubuntu-latest/Node 22",
+        "ubuntu-latest/Node 24",
+        "windows-latest/Node 22",
+        "windows-latest/Node 24"
+      ],
+      "ubuntu_real_python_replay": "passed",
+      "note": "在 PR #6 上运行；Ubuntu 固定上游真实回放作业通过，Windows 上两项 POSIX 专项跳过与本地一致。"
+    }
   },
   "package": {
     "filename": "dsh-plugin-veriscope-0.5.0.tgz",
@@ -228,11 +241,6 @@
   ],
   "pending": [
     {
-      "item": "Ubuntu remote CI for 0.5.0",
-      "status": "pending",
-      "reason": "No push or remote CI in authorized scope."
-    },
-    {
       "item": "macOS actual runtime",
       "status": "pending",
       "reason": "No macOS host available."
@@ -331,6 +339,29 @@
     {
       "local_evidence_file": "permission-probe-failure.json",
       "sha256": "041c07ec10ac259817a2b9448a0eced6f1c4ee2b4d70bc5d12be2cdb98e8408d"
+    }
+  ],
+  "publication": {
+    "npm_version": "0.5.0",
+    "npm_dist_tag_latest": "0.5.0",
+    "npm_files": 49,
+    "npm_unpacked_bytes": 325060,
+    "npm_integrity": "sha512-KCTVpOCxRrieB3PIAowCQcgtjW6i3yF3mI2M7IyW4L6+0D0gv6EH4aT6VVDENQVfYaQYch5QH14WQai2ZgbNOA==",
+    "npm_tarball_sha256": "a2cd11aaac1a29dcb1b91dec77e0bb2d089d788c08235597a845dc0062c9edb7",
+    "npm_tarball_sha256_matches_accepted_package": true,
+    "attestations_present": true,
+    "git_tag": "v0.5.0",
+    "git_commit": "43f380a705721dabdd53d740a43b769074cd4eba",
+    "pull_request": "https://github.com/4444wjt/dsh-plugin-veriscope/pull/6",
+    "release_workflow_run": "39050359996",
+    "published_at_utc": "2026-10-17T16:39:53Z",
+    "note": "发布前后 tarball 字节一致；npm 处理约 3 分钟后可下载。"
+  },
+  "resolved_after_release": [
+    {
+      "item": "Ubuntu remote CI for 0.5.0",
+      "status": "passed",
+      "evidence": "workflow run 39050279639：ubuntu-latest Node 22/24 与 Ubuntu 固定上游真实回放均通过。"
     }
   ]
 }

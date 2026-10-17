@@ -120,7 +120,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 複数ホスト向け MCP
 
-0.5.0 は check を追加し、MCP は 5 ツールになります。本候補版の Windows ホスト実呼び出しと未検証項目は `docs/acceptance-b2-v0.5.0.json` に記録します。今回 Ubuntu は実行していません。以下は 0.4.0 の過去の検証です。
+0.5.0 は check を追加し、MCP は 5 ツールになります。Windows ホスト実呼び出しと Ubuntu リモート CI（固定上流の実リプレイを含む）は通過しました。残る未検証項目は `docs/acceptance-b2-v0.5.0.json` に記録します。以下は 0.4.0 の過去の検証です。
 
 0.4.0 では分離した Claude Code／Codex のホスト制御インターフェースで実際のツール呼び出しを検証しました。モデルとの対話は行っていません。Windows と Ubuntu の実リプレイは確認済みです。Claude のエラー経路は制御 API からテキストのみが返り、構造化エラー全体の受け渡しは未検証です。Node の絶対パスでソースの `mcp.js` を起動します。設定と分離環境の例は [MCP 接続手順](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)を参照してください。DSH SDK は読み込みません。初版は `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` の 4 ツールのみで、ネイティブカードはありません。batch／export と bind／complete は DSH 専用です。セッションの紐付けは移植せず、MCP レポートの `execution.session_id` は `null` です。
 
