@@ -30,7 +30,8 @@ test('doctor missing interpreter preserves healthy root and supplies Chinese rep
   assert.equal(d.status, 'REVIEW'); assert.equal(d.ready, false)
   assert.equal(d.items.find(x => x.check === 'root_readable').status, 'ok')
   assert.equal(d.items.find(x => x.check === 'gate_script').status, 'ok')
-  assert.ok(d.items.some(x => x.status === 'fail' && x.suggestion?.includes('$env:VERISCOPE_PYTHON')))
+  const assignment = process.platform === 'win32' ? '$env:VERISCOPE_PYTHON' : 'export VERISCOPE_PYTHON='
+  assert.ok(d.items.some(x => x.status === 'fail' && x.suggestion?.includes(assignment)))
   assert.equal(f.calls.length, 0)
 })
 test('doctor detects tampered upstream script', async t => {
