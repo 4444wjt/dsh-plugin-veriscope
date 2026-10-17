@@ -1,7 +1,7 @@
 {
   "name": "dsh-plugin-veriscope",
-  "version": "0.4.0",
-  "description": "Offline VeriScope Quality Gate replay for DeepSeek Harness (DSH).",
+  "version": "0.5.0",
+  "description": "Local archived-score threshold gates and VeriScope replay for DSH and MCP.",
   "author": {
     "name": "4444wjt"
   },
@@ -25,7 +25,14 @@
     "client.js",
     "THIRD_PARTY_NOTICES.md",
     "mcp.js",
-    "scripts/prune.mjs"
+    "scripts/prune.mjs",
+    "scripts/check.mjs",
+    "schemas",
+    "examples/builtin",
+    "README.en.md",
+    "README.ja.md",
+    "README.ko.md",
+    "docs/B2.md"
   ],
   "dsh": {
     "bundle": {
@@ -41,7 +48,8 @@
   "scripts": {
     "test": "node --test",
     "replay": "node scripts/replay.mjs",
-    "prepublishOnly": "node scripts/release-guard.mjs"
+    "prepublishOnly": "node scripts/release-guard.mjs",
+    "check": "node scripts/check.mjs"
   },
   "keywords": [
     "deepseek-harness",
@@ -73,6 +81,7 @@
     "access": "public"
   },
   "bin": {
-    "veriscope-mcp": "./mcp.js"
+    "veriscope-mcp": "./mcp.js",
+    "veriscope-check": "./scripts/check.mjs"
   }
 }

@@ -40,7 +40,7 @@ export function previewRetention(env = process.env, { entryLimit = 10_000 } = {}
             if (!buckets.has(parts[1])) buckets.set(parts[1], { run_id: parts[1], bytes: 0, files: [], historical_verdict: 'unknown', association_verified: false })
             const run = buckets.get(parts[1]); run.bytes += stat.size; run.files.push(parts[2])
             if (parts[2] === 'receipt.json' && stat.size <= 1024 * 1024) {
-              try { const receipt = JSON.parse(readBounded(filename, 1024 * 1024)); if (receipt.schema_version === 'ReceiptV1' && receipt.payload?.run_id === run.run_id && ['PASS', 'FAIL', 'REVIEW'].includes(receipt.payload.historical_verdict)) run.historical_verdict = receipt.payload.historical_verdict } catch { /* damaged records remain visible */ }
+              try { const receipt = JSON.parse(readBounded(filename, 1024 * 1024)); if (['ReceiptV1', 'ReceiptV2'].includes(receipt.schema_version) && receipt.payload?.run_id === run.run_id && ['PASS', 'FAIL', 'REVIEW'].includes(receipt.payload.historical_verdict)) { run.historical_verdict = receipt.payload.historical_verdict; if (receipt.schema_version === 'ReceiptV2') run.engine = receipt.payload.engine } } catch { /* damaged records remain visible */ }
             }
           } else if (parts[0] === 'exports' || parts[0] === 'completions') {
             const row = { path: relative, bytes: stat.size, run_ids: [], association: 'unknown' }
@@ -48,7 +48,7 @@ export function previewRetention(env = process.env, { entryLimit = 10_000 } = {}
               try {
                 const data = JSON.parse(readBounded(filename, 1024 * 1024)), records = Array.isArray(data) ? data : [data]
                 for (const record of records) {
-                  const id = record?.schema_version === 'ReceiptV1' ? record.payload?.run_id : record?.schema_version === 'ManagedCompletionV1' ? record.run_id : null
+                  const id = ['ReceiptV1', 'ReceiptV2'].includes(record?.schema_version) ? record.payload?.run_id : record?.schema_version === 'ManagedCompletionV1' ? record.run_id : null
                   if (typeof id === 'string' && UUID.test(id)) row.run_ids.push(id)
                 }
                 row.run_ids = [...new Set(row.run_ids)]

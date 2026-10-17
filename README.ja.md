@@ -4,21 +4,42 @@
 
 > 本ページは中国語原文の翻訳です。解釈が異なる場合は中国語原文を優先します。要約ではなく全節を訳していますが、詳細な条件は原文も併せて確認してください。
 
-> **0.4.0 へのアップグレード**：既存の受領書の現在の有効性は REVIEW となりますが、過去の PASS／FAIL は書き換えません。更新前に状態ディレクトリ全体と元のアーカイブをバックアップし、永続状態はプラグインの外に保存してください。パッケージ内の `.local` は再インストールで失われる場合があり、受領書だけのエクスポートは完全なバックアップではありません。再度 replay して新版の受領書を取得してください。
+> **0.5.0 ローカル候補版へのアップグレード**：既存の受領書の現在の有効性は REVIEW となりますが、過去の PASS／FAIL は書き換えません。更新前に状態ディレクトリ全体と元のアーカイブをバックアップし、永続状態はプラグインの外に保存してください。パッケージ内の `.local` は再インストールで失われる場合があり、受領書だけのエクスポートは完全なバックアップではありません。再度 replay して新版の受領書を取得してください。
 
-既存の VeriScope 評価 JSON を DSH に接続し、元の Python Quality Gate を呼び出して、**通過／失敗／要再確認**、現在の受領書の有効性と出所を返します。
+既存スコアは Node 単独の閾値ゲートで確認でき、VeriScope アーカイブは元の Python Quality Gate で再実行できます。両経路とも **PASS／FAIL／REVIEW** と確認可能なローカル受領書を返します。
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手動同期ミラー](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · VeriScope 本体：[メイン](https://github.com/4444wjt/RAG_Evaluation_Demo)／[ミラー](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue と PR は GitHub へ。
 
-Python が唯一の数値判定者です。REVIEW が PASS に変わることはなく、確定した FAIL が付随する異常で覆われることもありません。PASS はアーカイブ指標が紐付いたゲートを通過したことだけを示し、回答の事実正確性を証明しません。本プラグインは再評価せず、アーカイブを変更せず、公開や Git 操作も行いません。
+元の replay の数値判定者は Python のままです。B2 は別の `builtin-threshold-v1` と明示的な方針を使います。REVIEW が PASS に変わることはなく、確定した FAIL が付随する異常で覆われることもありません。PASS はアーカイブ指標が紐付いたゲートを通過したことだけを示し、回答の事実正確性を証明しません。本プラグインは再評価せず、アーカイブを変更せず、公開や Git 操作も行いません。
 
 ---
 
-本プラグインは既存の VeriScope 評価アーカイブを再確認し、プロンプトの最適化や回答の書き換えは行いません。元の Python Quality Gate を呼び出し、判定に使った入力・閾値・実行環境を記録して、受領書が現在も有効かを確認します。PASS はアーカイブ指標が紐付いたゲート条件を満たすことだけを示し、公開に必要な検証全体を代替するものではありません。
+以下の従来の VeriScope 手順は replay 向けです。B2 の入力・判定・受領書は上の専用説明に従います。
 
-現在受け付ける入力は VeriScope のアーカイブ形式のみです。汎用形式とアダプタは未提供です。未対応形式は拒否し、推測も換算もしません。
+元の VeriScope アーカイブに加え、B2 の GateArchiveV1 と指定した Ragas records 形式を受け付けます。未対応形式は拒否し、推測や換算はしません。
 
-## 設定後、30 秒で始める
+## 既存スコアを直接確認：B2（0.5.0 ローカル候補版）
+
+Ragas のスコアが既にある場合は JSON に出力し、確認する指標と閾値を指定してゲート判定と受領書の保存を行えます。**VeriScope のインストールも、新たなモデル採点も不要です。**
+
+必要なのは Node ≥22.19 のみです。ホスト起動前に、書き込み可能な永続ディレクトリを `VERISCOPE_STATE_DIR` で明示してください。settings UI はなく、`.env` は読みません。B2 は VeriScope／Python のパスを使用しません。
+
+> `veriscope_gate_check` で `D:\data\scores.json` を確認してください。方針は `D:\data\policy.json`、形式は `ragas-records-v1` とし、判定理由を説明してください。
+
+```powershell
+$env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
+node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy examples/builtin/policy.json --format ragas-records-v1 --json
+```
+
+- `GateArchiveV1` と Ragas の `result.to_pandas().to_json(orient="records")` 形式に対応し、明示的な `GatePolicyV1` を使います。列名や閾値は推測しません。
+- 入力された全行の等重み平均です。欠損をゼロにせず、除外もしません。完全な指標の不合格があれば FAIL、それ以外の情報不足は REVIEW、必要な全指標が完全かつ合格の場合だけ PASS です。
+- `faithfulness` を `pos_faithfulness` に変更しません。B2 の PASS は元のゲートと同一ではなく、採点の真正性や回答の事実正確性を証明せず、出力前に削除された行も検出できません。
+- DSH／MCP に check、インストール後の CLI に `veriscope-check` を提供します。`doctor({engine:"builtin"})` は Python を調べません。status／list は両版の受領書を扱います。
+- B2 は ReceiptV2 とテキスト表示を使い、bind／complete には使えません。DSH の JSON／Markdown 出力には対応しますが、B2 の share は未対応です。記録は無期限保持で自動削除しません。
+
+同梱の `docs/B2.md`、`schemas/`、`examples/builtin/` を参照してください。例は文書に基づく構成例であり、実評価ではありません。0.5.0 は未公開です。候補版の検証は `docs/acceptance-b2-v0.5.0.json` に記録し、旧版のホスト／Ubuntu 結果を流用しません。
+
+## 元の VeriScope 経路：設定後に始める
 
 環境を設定した後（次節）、DSH で順に入力します。
 
@@ -44,7 +65,7 @@ Python が唯一の数値判定者です。REVIEW が PASS に変わることは
 
 ## インストールと設定
 
-本文は **0.4.0** に対応し、DSH プラグインと独立した `veriscope-mcp` エントリを提供します。利用可能な公開版は [npm パッケージページ](https://www.npmjs.com/package/dsh-plugin-veriscope)で確認してください。MCP 設定と未検証の範囲は以下に記載します。検証済みの DSH CLI ではプロファイルを明示します。以下は専用の `veriscope-demo` を使います。
+本文は **0.5.0 ローカル候補版** に対応し、DSH プラグインと独立した `veriscope-mcp` エントリを提供します。利用可能な公開版は [npm パッケージページ](https://www.npmjs.com/package/dsh-plugin-veriscope)で確認してください。MCP 設定と未検証の範囲は以下に記載します。検証済みの DSH CLI ではプロファイルを明示します。以下は専用の `veriscope-demo` を使います。
 
 ```powershell
 # インストール
@@ -61,7 +82,7 @@ dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
 dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 ```
 
-パスは実際のソース位置に置き換えてください。ディレクトリ／link でのインストールを registry インストールの証明にしないでください。**インストール成功はゲート通過ではありません。**初回は `VERISCOPE_ROOT` と `VERISCOPE_PYTHON` の設定と診断が必要です。npm パッケージにテストと `docs` は含まれません。`npm test` はソース開発専用、`node scripts/verify-replay.mjs` も完全なソースリポジトリと検証素材がある場合のみ動作し、インストール後の機能ではありません。詳細はリポジトリを参照してください。
+パスは実際のソース位置に置き換えてください。ディレクトリ／link でのインストールを registry インストールの証明にしないでください。**インストール成功はゲート通過ではありません。**従来の replay は初回に `VERISCOPE_ROOT` と `VERISCOPE_PYTHON` の設定と診断が必要です。B2 だけなら状態ルートのみ設定します。npm パッケージにテストは含みません。`docs/B2.md`、Schema と B2 例は同梱し、その他の文書はリポジトリにあります。`npm test` はソース開発専用、`node scripts/verify-replay.mjs` も完全なソースリポジトリと検証素材がある場合のみ動作し、インストール後の機能ではありません。詳細はリポジトリを参照してください。
 
 0.3.x の過去の検証：Windows、DSH NEXT 2.0.18-next、内部 DSH／tools／skill **0.2.1-alpha.2**。Node ≥22.19。他のホスト版は未検証。上流および Python／pandas との互換も必要で、固定依存は[上流の説明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)にあります。本プラグインは上流全体や業務アーカイブを同梱しません。
 
@@ -75,7 +96,7 @@ DSH エントリは `@deepseek-ai/dsh-tools` の `0.2.1-alpha.2` を要求し、
 |---|---|---|
 | `veriscopeRoot` | `VERISCOPE_ROOT` | Windows 既定値は `D:\RAG_Evaluation_Demo`。POSIX は明示設定が必須 |
 | `pythonPath` | `VERISCOPE_PYTHON` | `.venv`／`venv` を順に探索。Windows は `Scripts/python.exe`、POSIX は `bin/python`。PATH にはフォールバックしません |
-| 状態ルート | `VERISCOPE_STATE_DIR` | DSH 既定値は `<プラグイン>/.local`。永続ディレクトリを推奨。MCP は明示設定が必須 |
+| 状態ルート | `VERISCOPE_STATE_DIR` | 従来の DSH replay は `<プラグイン>/.local` が既定。B2 と全 MCP ツールは永続ディレクトリの明示が必須 |
 | リマインダ | cordis patch `completionMode` | `off`。`off` か `remind` のみ、他はエラー |
 
 三つの環境変数の明示値は空でない絶対パスである必要があります。無効な値を指定しても、既定値には自動で切り替わりません。**DSH を起動するのと同じターミナル**で設定し、起動または完全再起動します。次の最終行は、先ほどの npm インストールに代えて GitHub からインストールする場合のコマンドです。インストール済みなら実行は不要です。
@@ -97,17 +118,20 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 `off` はターン停止時のリマインダを無効化し、全ツールは利用可能なままです。`remind` は未完了の紐付きタスクだけを通知し、通常チャットの全般的な遮断は約束しません。パスはこの config に書けません。
 
-## 複数ホスト向け MCP（0.4.0）
+## 複数ホスト向け MCP
 
-分離した Claude Code／Codex のホスト制御インターフェースで実際のツール呼び出しを検証しました。モデルとの対話は行っていません。Windows と Ubuntu の実リプレイは確認済みです。Claude のエラー経路は制御 API からテキストのみが返り、構造化エラー全体の受け渡しは未検証です。Node の絶対パスでソースの `mcp.js` を起動します。設定と分離環境の例は [MCP 接続手順](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)を参照してください。DSH SDK は読み込みません。初版は `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` の 4 ツールのみで、ネイティブカードはありません。batch／export と bind／complete は DSH 専用です。セッションの紐付けは移植せず、MCP レポートの `execution.session_id` は `null` です。
+0.5.0 は check を追加し、MCP は 5 ツールになります。本候補版の Windows ホスト実呼び出しと未検証項目は `docs/acceptance-b2-v0.5.0.json` に記録します。今回 Ubuntu は実行していません。以下は 0.4.0 の過去の検証です。
 
-MCP の 4 ツールはすべて有効な `VERISCOPE_STATE_DIR` の明示が必要です。未設定なら要確認を返し、パッケージ内にはフォールバックしません。doctor は一時プローブを作成・削除し、replay はレポートと受領書を書き込むため、どちらも読み取り専用ではありません。status／list は読み取り専用です。業務上の FAIL はツール実行エラーとは異なります。ホストでのツール呼び出し、Linux の実リプレイ、本バージョンの検証状況は[受入記録](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json)に分けて記録します。登録成功や独自クライアントの成功だけではホスト受入を証明しません。
+0.4.0 では分離した Claude Code／Codex のホスト制御インターフェースで実際のツール呼び出しを検証しました。モデルとの対話は行っていません。Windows と Ubuntu の実リプレイは確認済みです。Claude のエラー経路は制御 API からテキストのみが返り、構造化エラー全体の受け渡しは未検証です。Node の絶対パスでソースの `mcp.js` を起動します。設定と分離環境の例は [MCP 接続手順](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)を参照してください。DSH SDK は読み込みません。初版は `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` の 4 ツールのみで、ネイティブカードはありません。batch／export と bind／complete は DSH 専用です。セッションの紐付けは移植せず、MCP レポートの `execution.session_id` は `null` です。
 
-## 8 つのツール
+現在の MCP の 5 ツールはすべて有効な `VERISCOPE_STATE_DIR` の明示が必要です。未設定なら要確認を返し、パッケージ内にはフォールバックしません。doctor は一時プローブを作成・削除し、replay はレポートと受領書を書き込むため、どちらも読み取り専用ではなく、新しい check も記録を書き込みます。status／list は読み取り専用です。業務上の FAIL はツール実行エラーとは異なります。ホストでのツール呼び出し、Linux の実リプレイ、本バージョンの検証状況は[受入記録](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json)に分けて記録します。登録成功や独自クライアントの成功だけではホスト受入を証明しません。
+
+## 9 つのツール
 
 | ツール | 用途 |
 |---|---|
-| `veriscope_doctor({})` | パス、スクリプト契約、Python／pandas、状態ルートの書き込み、最近の受領書を確認し、準備完了または要再確認と修正提案を返す |
+| `veriscope_gate_check({archive_path, policy_path, format?})` | 既存の逐行スコアに対する Node 単独の閾値判定。Python 不要で ReceiptV2 を生成 |
+| `veriscope_doctor({engine?})` | 既定は従来の replay 環境を診断。`engine:"builtin"` は Node と明示的状態ルートのみ確認し、修正提案を返す |
 | `veriscope_gate_replay({result_path, baseline?, faith?, ctx?})` | 既存アーカイブで実際にゲートを実行し、独立記録を保存、条件を満たす場合に ReceiptV1 を生成 |
 | `veriscope_gate_status({run_id, faith?, ctx?, baseline_run_id?})` | 受領書の現在有効性を読み取り専用で確認。リプレイ・採点・新規受領書は行わない |
 | `veriscope_gate_list({limit?})` | 既定で直近 50 件（1–200）。各件で status を再利用し、破損記録は別掲 |
@@ -118,12 +142,12 @@ MCP の 4 ツールはすべて有効な `VERISCOPE_STATE_DIR` の明示が必�
 
 ### パラメータと規則
 
-- 閾値は既定 0.8、0–1 の有限値である必要があり、PASS を得るために自動で下げることはありません。
+- 従来の replay の閾値は既定 0.8、0–1 の有限値である必要があり、PASS を得るために自動で下げることはありません。
 - アーカイブの相対パスは `VERISCOPE_ROOT` を基準にします。
 - `baseline_run_id` は省略で元のベースライン維持、`null` でベースラインなし、UUID は現在の状態ルート内の有効な受領書を参照します。
 - `task_id` は英数字・下線・ドット・ハイフン 1–80 文字。セッション識別子はツール引数で偽装できません。紐付けはメモリ上のみで、再起動後は再紐付けが必要です。ディスク上の完了記録が権限を復元することはありません。
 
-「有効性の確認」は status、「ゲートの再実行」は replay です。実際の replay だけが受領書を生成します。入力・ベースライン・方針・上流・プラグイン・環境が変わると、旧受領書は要再確認になり、過去の失敗は保持されます。詳細は[受領書プロトコル](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md)。
+「有効性の確認」は status、「ゲートの再実行」は replay です。ReceiptV1 は実際の replay、ReceiptV2 は実際の B2 check のみが生成します。入力・ベースライン・方針・上流・プラグイン・環境が変わると、旧受領書は要再確認になり、過去の失敗は保持されます。詳細は[受領書プロトコル](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md)。
 
 0.4.0 は従来の監査済み契約、または公開コミット `1b89bcabb83e1b123039799516596fdcfd393d42` から監査した LF 契約のどちらかを受け付けます。契約一式の元バイトが一致する必要があり、ファイル単位の混在や実行時の正規化は行いません。MCP 入口、共有ツール一覧、契約選択コードも受領書のハッシュ対象です。更新により旧受領書の現在の有効性は REVIEW になりますが、過去の記録は保持します。
 
@@ -156,7 +180,9 @@ JSON 拒否時、`execution.errors[].diagnostic` が確認可能な発見点を�
 
 status の `changes` は、元の受領書と今回取得した固定紐付け項目の差だけを説明し、最大 20 項目で打ち切りを明示します。`COMPLETE` は列挙範囲を確認したという意味のみで、変化がないことは事実正確性を意味しません。`UNVERIFIED` は一部または全部が未確認という意味で、確認済みの変化は表示されます。契約検査の失敗は元の拒否経路を維持し、それ以外は未確認のままです。検査を迂回して比較を捏造することはせず、そこからスコア変化を帰属させることもありません。
 
-## ネイティブ結果カード（DSH）
+## ネイティブ結果カード（従来の DSH replay）
+
+B2 status は同じ領域に中国語テキストを表示し、従来の Python 項目や更新ボタンは使いません。
 
 `tool.call.toolview` 対応ホストでは、暗色に金色の中国語結果カードを表示します。現在の三状態、次の手順、「再確認」ボタン、折りたたみ根拠です。ボタンは状態を読むだけで、リプレイや完了登録はできません。カード非対応の場合は中国語テキストを保持します。
 
@@ -166,7 +192,7 @@ status の `changes` は、元の受領書と今回取得した固定紐付け�
 
 カードは開くたびに同じ明示的閾値／ベースライン方針で再確認し、過去の PASS をそのまま表示しません。読み込み失敗、方針無効、本セッション紐付けの欠如、プロトコル不完全はいずれも要再確認です。表示はその確認時刻のみを表し、ファイルを継続監視しません。使用前に再確認できます。ネイティブカードにパス設定パネルはありません。
 
-## 三つの状態と判定規則
+## 従来の replay：三つの状態と判定規則
 
 本プラグインは既存の評価結果を読み、ゲートを実行し、通過（PASS）・失敗（FAIL）・要再確認（REVIEW）のいずれかを返します。
 
@@ -180,11 +206,11 @@ replay が FAIL を確定した後、受領書の書き込みに失敗しても�
 
 ## 出力とデータ境界
 
-記録は `<状態ルート>/runs/<run_id>/` に `report.json`、stdout、stderr、条件を満たす場合の `receipt.json` として保存されます。完了登録は `completions/` に別保存します。追記は失敗を上書きしません。ログにはアーカイブ断片やローカルパスが含まれ得るため、共有前に秘匿化してください。本プラグインはアーカイブを送信せず、環境全体を表示しません。
+従来の replay の記録は `<状態ルート>/runs/<run_id>/` に `report.json`、stdout、stderr、条件を満たす場合の `receipt.json` として保存されます。完了登録は `completions/` に別保存します。B2 は report、原入力、方針、正規化データと ReceiptV2 を保存し、stdout／stderr は偽造しません。追記は失敗を上書きしません。ログにはアーカイブ断片やローカルパスが含まれ得るため、共有前に秘匿化してください。本プラグインはアーカイブを送信せず、環境全体を表示しません。
 
 全記録は既定で無期限保存され、自動削除はありません。`VERISCOPE_STATE_DIR` を明示して `node scripts/prune.mjs --dry-run --json` を実行すると、ファイル一覧、論理バイト数、記録上の関連を読み取り専用で表示します。関連の正しさは検証せず、削除入口もありません。再インストールや削除に備え、状態はプラグイン外に保存してください。
 
-入力は 10MiB、stdout／stderr は各 2MiB、リプレイは 120 秒、環境診断は各 10 秒が上限です。status はファイルを読みハッシュし、Python を起動してバージョンと pandas メタデータを取得しますが、評価モデルやゲートスクリプトは実行しません。ハッシュは意味的正しさを証明せず、状態ルート全体を書き換えられる利用者は対象外です。確認後の変化は再確認でしか見つかりません。
+入力は 10MiB、stdout／stderr は各 2MiB、リプレイは 120 秒、環境診断は各 10 秒が上限です。ReceiptV1 の status はファイルを読みハッシュし、Python を起動してバージョンと pandas メタデータを取得しますが、評価モデルやゲートスクリプトは実行しません。ハッシュは意味的正しさを証明せず、状態ルート全体を書き換えられる利用者は対象外です。確認後の変化は再確認でしか見つかりません。
 
 過去の Trace は逐字の出所のみを照合し `historical_ai` と表示します。新しい意味的検査ではありません。中核は新たな評価モデル呼び出しをゼロに保ちますが、ホストの会話にはトークン費用が生じ得ます。アルゴリズムの独自性やエンドツーエンドのコスト削減は主張しません。
 

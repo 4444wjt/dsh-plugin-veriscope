@@ -1,0 +1,8 @@
+{
+  "schema_version": "GateArchiveV1",
+  "source": { "producer": "constructed-example", "version": null },
+  "rows": [
+    { "id": "example-1", "scores": { "faithfulness": 0.9, "latency_ms": 120 } },
+    { "id": "example-2", "scores": { "faithfulness": 0.9, "latency_ms": 160 } }
+  ]
+}

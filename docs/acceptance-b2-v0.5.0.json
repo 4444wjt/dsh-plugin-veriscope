@@ -1,0 +1,336 @@
+{
+  "schema_version": "B2AcceptanceV1",
+  "version": "0.5.0",
+  "delivery": "local_candidate_uncommitted_unpublished",
+  "baseline_commit": "c3e6c14246cf093a4f457d89f6fdd80aeccfd870",
+  "recorded_at_utc": "2026-10-17T16:05:32.788645+00:00",
+  "positioning": "免装 VeriScope 的已有评分门禁；只检查所提供的数据，不证明评分或回答事实正确。",
+  "tests": {
+    "tests": 363,
+    "pass": 361,
+    "fail": 0,
+    "skipped": 2,
+    "cancelled": 0,
+    "command": "node --test --test-reporter=tap",
+    "platform": "Windows",
+    "node": "v24.21.0",
+    "skipped_scope": "Two existing POSIX-specific tests; no new skipped B2 tests; Ubuntu remote CI not run."
+  },
+  "package": {
+    "filename": "dsh-plugin-veriscope-0.5.0.tgz",
+    "files": 49,
+    "tarball_bytes": 104630,
+    "unpacked_bytes": 325060,
+    "sha256": "a2cd11aaac1a29dcb1b91dec77e0bb2d089d788c08235597a845dc0062c9edb7",
+    "installation": "normal npm install local tarball --offline --no-audit --no-fund; no peer bypass flags",
+    "runtime_dependencies": [],
+    "DSH_peers_installed_in_clean_consumer": false,
+    "source_files_identical_to_installed_tarball": true,
+    "files_list": [
+      "LICENSE",
+      "README.en.md",
+      "README.ja.md",
+      "README.ko.md",
+      "README.md",
+      "THIRD_PARTY_NOTICES.md",
+      "client.js",
+      "contracts/upstream-lf.json",
+      "contracts/upstream.json",
+      "cordis.patch.yml",
+      "docs/B2.md",
+      "examples/builtin/archive.json",
+      "examples/builtin/policy.json",
+      "examples/builtin/ragas-records.json",
+      "examples/builtin/README.md",
+      "index.js",
+      "lib/batch.js",
+      "lib/bridge.js",
+      "lib/builtin-receipt.js",
+      "lib/builtin-rules.js",
+      "lib/builtin.js",
+      "lib/catalog.js",
+      "lib/changes.js",
+      "lib/config.js",
+      "lib/contracts.js",
+      "lib/doctor.js",
+      "lib/dsh-sdk.js",
+      "lib/errors.js",
+      "lib/export.js",
+      "lib/managed.js",
+      "lib/mcp.js",
+      "lib/parser.js",
+      "lib/process.js",
+      "lib/reasons.js",
+      "lib/receipt.js",
+      "lib/replay.js",
+      "lib/schema.js",
+      "lib/source.js",
+      "lib/status.js",
+      "lib/tools.js",
+      "lib/trace.js",
+      "mcp.js",
+      "package.json",
+      "schemas/gate-archive-v1.schema.json",
+      "schemas/gate-policy-v1.schema.json",
+      "scripts/check.mjs",
+      "scripts/prune.mjs",
+      "scripts/replay.mjs",
+      "skills/dsh-plugin-veriscope/SKILL.md"
+    ]
+  },
+  "node_only": {
+    "passed": true,
+    "Python_on_PATH": false,
+    "VeriScope_configuration_removed": true,
+    "model_libraries_installed": false,
+    "cases": 6,
+    "formats": [
+      "gate-archive-v1",
+      "ragas-records-v1"
+    ],
+    "states_per_format": [
+      "PASS",
+      "FAIL",
+      "REVIEW"
+    ],
+    "additional_child_process_check": "Node child_process APIs instrumented to throw; six installed CLI checks still generated valid receipts. Not an OS sandbox guarantee."
+  },
+  "cross_entry": {
+    "passed": true,
+    "cases": 6,
+    "provenance": "Documentation-constructed protocol fixtures, not real Ragas evaluation or user data.",
+    "entries": [
+      "CLI",
+      "custom_MCP_client",
+      "DSH",
+      "Codex",
+      "Claude_Code"
+    ],
+    "compared_fields": [
+      "status",
+      "gate_passed",
+      "judgement",
+      "engine",
+      "metrics",
+      "policy",
+      "source",
+      "evidence",
+      "limitations",
+      "executed",
+      "errors",
+      "evaluation_model_calls",
+      "receipt_available",
+      "eligible_at_recording"
+    ],
+    "excluded_only": [
+      "run_id",
+      "time/elapsed",
+      "session",
+      "artifact paths"
+    ],
+    "business_FAIL_and_missing_value_REVIEW_are_tool_errors": false
+  },
+  "hosts": {
+    "DSH": {
+      "status": "passed",
+      "version": "DSH NEXT 2.0.18-next",
+      "node": "v24.18.1",
+      "tool_calls": 21,
+      "method": "real ToolRuntime in independent profile; synthetic event log explicitly labelled; no model request",
+      "check_and_status_cases": 6,
+      "managed_B2_bind_and_complete": "explicitly_rejected",
+      "export_JSON_Markdown": "passed",
+      "share": "explicitly_unsupported",
+      "same_mtime_input_change": "REVIEW",
+      "browser": {
+        "status": "passed",
+        "builtin_text_blocks": 9,
+        "legacy_cards_for_B2": 0,
+        "font_px": 15,
+        "buttons": 0,
+        "preview": "http://127.0.0.1:4196/",
+        "screenshot": "Inspected through browser screenshot; local authentication required outside the inspected browser."
+      }
+    },
+    "Codex": {
+      "status": "passed",
+      "version": "0.163.0",
+      "method": "actual app-server MCP tool-call control interface",
+      "tool_calls": 15,
+      "check_and_status_cases": 6,
+      "invalid_JSON_structured_error": "passed"
+    },
+    "Claude_Code": {
+      "status": "passed_for_six_business_cases",
+      "version": "2.1.278",
+      "method": "actual stream-json control runtime",
+      "tool_calls": 15,
+      "check_and_status_cases": 6,
+      "invalid_JSON_error": "Text INVALID_JSON observed; complete structured error delivery pending. Not counted as cross-host structured equivalence."
+    }
+  },
+  "legacy_regression": {
+    "status": "passed",
+    "method": "custom MCP client and actual protected Python executor; not a host acceptance substitute",
+    "cases": 4,
+    "states": [
+      "PASS",
+      "FAIL",
+      "REVIEW"
+    ],
+    "historical_archive": "Read-only protected original archive; explicit FAIL retained."
+  },
+  "compatibility": {
+    "ReceiptV1_history": "preserved",
+    "ReceiptV2": "builtin-threshold-v1",
+    "code_or_environment_change": "Current validity REVIEW; historical decision untouched.",
+    "exports": "ReceiptV1/V2 JSON and Markdown; B2 share rejected including mixed batches.",
+    "retention": "indefinite, no automatic deletion; CLI inventory is read-only"
+  },
+  "isolation": {
+    "passed": true,
+    "upstream_files": {
+      "AGENTS.md": "338c89ba76bbce9941fbcd38da483dc6a38c5ff6c4b88de891fd9511786495fa",
+      "docs/gate-replay.md": "9b50aecb364511be02f2f8dbfd596c4a6900e2f4ceb17e3bc9c1209393a259d4",
+      "scripts/gate_replay.py": "3ecd6611da672ed9d22ccd5abf438e83e1f875fa589b175df692d0f26031b803",
+      "backend/config.py": "fd1651e31a583ef3d8a7c327b222080929bef2e938c0ea4616a45ee233b6bd63",
+      "backend/core/gate.py": "89d98d3ae8eeb076da163427a68477e59de3a8783c69d0e5bcd614cc29e9d6ae",
+      "backend/core/types.py": "48d64de58c4474d7c9fb1f41d66f801bbed08faf63a3a32507c11a159ffb736c",
+      "backend/core/attribution.py": "6860b3a43ce0b0e2c10f42e6f8672c9a6985942061aafb6d5aa261ae47ad605d",
+      "backend/core/regression.py": "17e2c10b6b41ac293f47d1491aad6493fab51c17df3e66f8f0cb779cbeac7564",
+      "frontend/src/fixtures/demo.json": "20290882fadbb68942f2c754262614e0858d8595d06a8b2e970fec1c7b4dfb7b",
+      "docs/competition/evidence/20261005T101847Z-pilot-c72cb679/api-response.json": "de4f72ba1b3aec309428b90bf105a5e8b2fbe2728fa193f573e3f24eecb939b2",
+      "docs/competition/evidence/20261005T131353Z-pilot-35f623cb/api-response.json": "f42fade1c9317a6562f2e1f76d17d08feb8c3764ab0d29f43b9a69bdc8150ee1",
+      "docs/competition/evidence/20261005T144504Z-full-39511424/api-response.json": "769865042388b9020f8d70fe212af5066e221eb812e194d460a3103ccafadb9d",
+      "docs/competition/evidence/20261014T073859Z-full-1c6f091f/api-response.json": "482c390ce8314f738f50904e6bb7b72238036f72589b3bb73c178f125663dd35",
+      "docs/competition/evidence/20261014T125415Z-full-a5002d4f/api-response.json": "2d3357d172dc6871e79b5abf452337a94784394f1426878bfd289e5503f025bf"
+    },
+    "upstream_HEAD_status_refs_unchanged": true,
+    "default_DSH_Claude_Codex_configuration_unchanged": true,
+    "plugin_HEAD_unchanged": true,
+    "git_write_operations": 0,
+    "evaluation_model_calls": 0,
+    "conversation_model_calls": 0,
+    "research_packs_touched": false,
+    "new_runtime_dependencies": 0
+  },
+  "quality_checks": {
+    "source_tarball_byte_match": "passed",
+    "sensitive_public_content_scan": "passed",
+    "diff_whitespace": "passed with one-off core.whitespace=cr-at-eol; existing CRLF retained, no Git config written"
+  },
+  "failures_retained": [
+    "Initial assertion code compared null-prototype JSON objects directly; corrected the test, not production semantics.",
+    "Browser found legacy card on an unbound B2 complete denial; fixed explicit B2 rejection and revalidated final tarball in all hosts.",
+    "Optional legacy harness: wrong archive path then polluted prior state; failed records retained, corrected fresh-state final run passed.",
+    "Optional Node --permission probe failed receipt publication; instrumented API probe separately passed. Node --permission compatibility not claimed.",
+    "QA --import Windows path required file URL; fixed only the private harness. Browser evidence file output denied by MCP workspace policy; DOM evidence saved via local file tool instead."
+  ],
+  "pending": [
+    {
+      "item": "Ubuntu remote CI for 0.5.0",
+      "status": "pending",
+      "reason": "No push or remote CI in authorized scope."
+    },
+    {
+      "item": "macOS actual runtime",
+      "status": "pending",
+      "reason": "No macOS host available."
+    },
+    {
+      "item": "Claude complete structured execution-error transport",
+      "status": "pending",
+      "reason": "Host control runtime exposes error as text."
+    }
+  ],
+  "not_claimed": [
+    "original VeriScope positive-sample semantics",
+    "all Ragas layouts or versions",
+    "factual correctness",
+    "original pre-export population completeness",
+    "end-to-end cost saving",
+    "user growth",
+    "model-based automatic tool choice",
+    "enterprise-wide readiness",
+    "Node --permission runtime compatibility"
+  ],
+  "evidence_storage": "Detailed logs and harnesses are local acceptance artifacts, not embedded in npm package; hashes identify the retained evidence.",
+  "evidence": [
+    {
+      "local_evidence_file": "tests-final.tap",
+      "sha256": "86ab25c55bf38f3b4c543f303880687453b2d6259b34364fa0fad4aa7fe4b111"
+    },
+    {
+      "local_evidence_file": "pack.json",
+      "sha256": "c7fc28a176287ade96dfb885ae1df41edbd94fccd369f97a1003a3d94d42a842"
+    },
+    {
+      "local_evidence_file": "package-manifest.json",
+      "sha256": "5f097cd2b2c5620fe1e13ae2a9d5948669a00cb7377bf0b75dbfb130605a108c"
+    },
+    {
+      "local_evidence_file": "install.txt",
+      "sha256": "2394f441f5cb8a523725d9c871cb632b376e146839103e471c635dde268680ca"
+    },
+    {
+      "local_evidence_file": "dependency-tree.json",
+      "sha256": "82a573095524a70a2da58abef339ae82c7ae4e9a405c006b4a399d8ff5e77c6a"
+    },
+    {
+      "local_evidence_file": "consumer-verification.json",
+      "sha256": "def25714cc46af381b48e99ac99250cd89ae659bdb5332f7d15d2eee440c5907"
+    },
+    {
+      "local_evidence_file": "cross-entry-comparison.json",
+      "sha256": "5d7dcb2bf7200bebfe8ae4fb9165ae518c4e4de5d79d22cf05e16ee920f643f0"
+    },
+    {
+      "local_evidence_file": "isolation-after.json",
+      "sha256": "c0ae688f36e8cd8427f4009abfa6e680681f45aeeffcdfdda2bc74080a61ff29"
+    },
+    {
+      "local_evidence_file": "codex/acceptance.json",
+      "sha256": "4728394b15883b90be589da74f19bb40655fd65860eccd75d15f6c4fa4fc2348"
+    },
+    {
+      "local_evidence_file": "codex/protocol.jsonl",
+      "sha256": "3ebc1c1f57d1004379557ffaf6e4ff7ac6aace3bcace19b7f1a2eef3686b6f65"
+    },
+    {
+      "local_evidence_file": "claude/acceptance.json",
+      "sha256": "25b2cde550bb991ade5bb0d3ee4676739d8d9e9bcbef91916edf272753330990"
+    },
+    {
+      "local_evidence_file": "claude/protocol.jsonl",
+      "sha256": "49a3c1b535d5aacbdf06d667241f3878c84116d265daf9cfd52ee393a4581307"
+    },
+    {
+      "local_evidence_file": "dsh/acceptance.json",
+      "sha256": "107c5de64decf2ef2ad1f1f62a3f4e474cdd34ef7cbdba47a62a18641eea44d9"
+    },
+    {
+      "local_evidence_file": "dsh/source-manifest.json",
+      "sha256": "76d44bfefa319c5799d9f074f13f6e04c5bb8e022e09e6030721f845ba975971"
+    },
+    {
+      "local_evidence_file": "dsh/browser-inspection.json",
+      "sha256": "4b30840d1d44e6a52b86444febdf52678d5e5568c5d11d767770ee337251869a"
+    },
+    {
+      "local_evidence_file": "no-child-process.json",
+      "sha256": "2eb129265806b5c3014cb1bbb1ed100f051d1ca0f40fba818347075adf11cc80"
+    },
+    {
+      "local_evidence_file": "legacy-state/verification/mcp-real-python.json",
+      "sha256": "75361375df81ebe0e4f86585b8d16a75f2c0571477625eba44cf94dd1aba5341"
+    },
+    {
+      "local_evidence_file": "node-permission-limit.json",
+      "sha256": "edea5c256fab4981e564d8fb8ee3d043ae6f7a2aa8695eb4008e0e5f36291acc"
+    },
+    {
+      "local_evidence_file": "permission-probe-failure.json",
+      "sha256": "041c07ec10ac259817a2b9448a0eced6f1c4ee2b4d70bc5d12be2cdb98e8408d"
+    }
+  ]
+}

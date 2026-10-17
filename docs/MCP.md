@@ -1,16 +1,23 @@
 # MCP 接入与验收
 
-此文对应 **0.4.0**。安装包提供 `veriscope-mcp`，源码入口为 `mcp.js`。可用版本以 [npm 包页面](https://www.npmjs.com/package/dsh-plugin-veriscope)为准；以下宿主示例使用隔离配置，不修改默认宿主配置。Claude／Codex 实际工具调用与 Linux 真实回放的完成状态单独记录。
+此文对应 **0.5.0 本地候选**，0.4.0 实测记录仅为历史。安装包提供 `veriscope-mcp`，源码入口为 `mcp.js`。可用版本以 [npm 包页面](https://www.npmjs.com/package/dsh-plugin-veriscope)为准；以下宿主示例使用隔离配置，不修改默认宿主配置。Claude／Codex 实际工具调用与 Linux 真实回放的完成状态单独记录。
 
 > **升级前备份**：0.4.0 改变插件绑定范围，旧回执的当前有效性进入 REVIEW，不改写历史 PASS／FAIL。请先备份完整状态目录及原归档，持久状态目录应放在插件外；单独导出回执不是完整备份。重新 replay 后取得新版本回执。
 
+## 0.5.0 新增独立阈值门禁
+
+`veriscope_gate_check({archive_path,policy_path,format?})` 只需要 Node 和显式 `VERISCOPE_STATE_DIR`，不依赖 VeriScope、Python、pandas 或 Ragas。`doctor({engine:"builtin"})` 不探测上游。现为五个 MCP 工具、九个 DSH 工具；B2 返回文本与 structuredContent，不提供卡片或受管完成能力。输入、策略及 ReceiptV2 详见 [B2 说明](B2.md)。
+
+仅使用 B2 时，下面的宿主 `env` 示例可只保留 `VERISCOPE_STATE_DIR`；使用 Node 绝对路径和本包 mcp.js，清除继承的 VeriScope 配置。状态根仍须外置持久目录，不读取 .env。B2 的状态检查不探测 Python。0.5.0 实测与 pending 项见 `acceptance-b2-v0.5.0.json`；下文的 0.4.0 平台和宿主成绩不代表本候选版已通过。
+
 ## 能力与判定边界
 
-使用绝对 Node 路径启动 `mcp.js`，传输为本地 stdio。MCP 入口只导入共享服务，不加载 DSH SDK；DSH 仍保留原八工具及原生卡片。
+使用绝对 Node 路径启动 `mcp.js`，传输为本地 stdio。MCP 入口只导入共享服务，不加载 DSH SDK；DSH 保留原八工具及原生卡片，并新增独立 check。
 
 | MCP 工具 | 用途 | `readOnlyHint` |
 |---|---|---|
-| `veriscope_doctor({})` | 检查配置、契约、Python／pandas、状态根与最近回执；会写入并清理临时探针 | `false` |
+| `veriscope_gate_check({archive_path, policy_path, format?})` | Node 独立阈值门禁，写报告和 ReceiptV2 | `false` |
+| `veriscope_doctor({engine?})` | 默认检查原 replay 环境；`engine:"builtin"` 只检查 Node 和显式状态根。会写入并清理临时探针 | `false` |
 | `veriscope_gate_replay({result_path, baseline?, faith?, ctx?})` | 调用原 Python Quality Gate，写报告，满足条件时生成回执 | `false` |
 | `veriscope_gate_status({run_id, faith?, ctx?, baseline_run_id?})` | 读取回执并核对当前绑定项，不执行门禁或写回执 | `true` |
 | `veriscope_gate_list({limit?})` | 读取近期回执并检查当前有效性 | `true` |
@@ -33,7 +40,7 @@ PASS 仅说明已有归档指标满足绑定的门禁条件，不证明回答事
 | `VERISCOPE_PYTHON` | 未设置时依次探测上游 `.venv/Scripts/python.exe`、`venv/Scripts/python.exe` | 未设置时依次探测 `.venv/bin/python`、`venv/bin/python` |
 | `VERISCOPE_STATE_DIR` | MCP 必须显式配置持久目录 | MCP 必须显式配置持久目录 |
 
-解释器不回退全局 PATH。四个 MCP 工具都先检查显式状态根；缺失或值无效时返回结构化待复核，不访问包目录的默认状态。初始化及工具发现仍可完成。DSH 继续使用原默认 `<插件目录>/.local`，也建议显式设置插件外的持久目录，以免重装或临时缓存影响历史记录。
+解释器不回退全局 PATH。五个 MCP 工具都先检查显式状态根；缺失或值无效时返回结构化待复核，不访问包目录的默认状态。初始化及工具发现仍可完成。DSH 原 replay 继续使用默认 `<插件目录>/.local`；DSH B2 仍强制显式状态根。建议使用插件外的持久目录，以免重装或临时缓存影响历史记录。
 
 Windows 的专用终端示例：
 
@@ -109,15 +116,15 @@ POSIX 使用同样的 TOML 字段，改为 `/usr/bin/node` 与相应绝对路径
 stdio 使用 UTF-8 单行 JSON-RPC，明确支持 `2025-06-18` 与 `2025-11-25`，优先后者；不宣称支持所有新版协议。不支持客户端请求的版本时，返回服务所支持的优先版本，由客户端决定是否继续。生命周期依据 [MCP 2025-11-25 规范](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)。
 
 - 方法：initialize、initialized 通知、ping、tools/list、tools/call、取消通知；未知方法和非法参数不执行工具。
-- 单条输入上限 1 MiB，最多八个在途调用；doctor／replay 串行，ping 与取消不会等待它们结束。stdout 仅协议消息。
+- 单条输入上限 1 MiB，最多八个在途调用；doctor／replay／check 串行，ping 与取消不会等待它们结束。stdout 仅协议消息。
 - EOF、SIGINT 或 SIGTERM 取消在途任务，不自动重试写入。中断不是完成证明，仍须保留已有记录并再次检查。
-- 工具名与参数定义来自共享的标准 JSON Schema 目录；DSH 在注册边界转换为其 DSL，并移除 DSL 不支持的 `minimum`／`maximum` 表示。两宿主都保留服务层范围校验，不声称转换后的 schema 字节相同。MCP 仅允许上述四工具，拒绝未知字段及伪造会话参数。
+- 工具名与参数定义来自共享的标准 JSON Schema 目录；DSH 在注册边界转换为其 DSL，并移除 DSL 不支持的 `minimum`／`maximum` 表示。两宿主都保留服务层范围校验，不声称转换后的 schema 字节相同。MCP 仅允许上述五工具，拒绝未知字段及伪造会话参数。
 
 运行时只接受原审阅契约或新增 LF 契约中**一整套原字节完全匹配**。LF 契约来自固定公开提交 `1b89bcabb83e1b123039799516596fdcfd393d42`；仅接纳审阅确认的相关行尾差异。不逐文件拼接，不运行时归一化，不因更换宿主而放宽执行器校验。
 
-本次将 MCP 入口、共享工具目录及契约选择模块纳入回执哈希。升级后旧回执保留原历史裁决，其当前可复用资格进入 REVIEW；不改旧报告、回执或历史 FAIL。只读 status 不能生成新回执，只有实际 replay 可以。
+本次将 MCP 入口、共享工具目录及契约选择模块纳入回执哈希。升级后旧回执保留原历史裁决，其当前可复用资格进入 REVIEW；不改旧报告、回执或历史 FAIL。只读 status 不能生成新回执，ReceiptV1 只有实际 replay 可以生成；ReceiptV2 由实际 B2 check 生成。
 
-## 验收与仍未证明的范围
+## 0.4.0 历史验收与仍未证明的范围
 
 完整源码的复现入口：
 
@@ -136,7 +143,9 @@ Ubuntu 远端 CI 已使用固定上游提交、Python 3.11.9、pandas 3.0.6 与�
 
 本工具仍定位单人本地工具：没有 RBAC、多用户隔离或自动保留期管理。请按项目使用独立状态根。跨平台与协议适配不等于企业全面就绪，也不证明语义正确、算法首创或端到端降本。
 
-## 部署复核
+## 0.4.0 历史部署复核
+
+下表及其 266 项测试统计属于 0.4.0 历史记录。本轮 0.5.0：Windows 共 363 项测试，361 通过、2 个 POSIX 专项跳过；Ubuntu 未运行。B2 三宿主实调用与限制以 `acceptance-b2-v0.5.0.json` 为准。
 
 | 项目 | 本轮结果 | 剩余范围 |
 |---|---|---|

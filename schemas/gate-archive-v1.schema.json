@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GateArchiveV1",
+  "type": "object",
+  "required": ["schema_version", "source", "rows"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "GateArchiveV1" },
+    "source": {
+      "type": "object", "required": ["producer"], "additionalProperties": false,
+      "properties": {
+        "producer": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S" },
+        "version": { "type": ["string", "null"], "maxLength": 128 }
+      }
+    },
+    "rows": {
+      "type": "array", "maxItems": 100000,
+      "items": {
+        "type": "object", "required": ["id", "scores"], "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S" },
+          "scores": {
+            "type": "object", "additionalProperties": true,
+            "description": "指标值应为有限数值；缺失、null 或非法值保留，由对应指标判为 REVIEW，不能过滤记录。"
+          }
+        }
+      }
+    }
+  }
+}
