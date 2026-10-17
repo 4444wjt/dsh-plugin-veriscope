@@ -99,7 +99,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 複数ホスト向け MCP（0.4.0）
 
-本バージョンは Claude Code／Codex 用の stdio MCP 設定を提供します。Claude は分離環境で登録と接続、Codex は登録と設定の読み戻しを確認済みですが、両者の実際のツール呼び出しは未検証です。Windows は確認済み、Linux の実リプレイは未検証です。Node の絶対パスでソースの `mcp.js` を起動します。設定と分離環境の例は [MCP 接続手順](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)を参照してください。DSH SDK は読み込みません。初版は `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` の 4 ツールのみで、ネイティブカードはありません。batch／export と bind／complete は DSH 専用です。セッションの紐付けは移植せず、MCP レポートの `execution.session_id` は `null` です。
+分離した Claude Code／Codex のホスト制御インターフェースで実際のツール呼び出しを検証しました。モデルとの対話は行っていません。Windows と Ubuntu の実リプレイは確認済みです。Claude のエラー経路は制御 API からテキストのみが返り、構造化エラー全体の受け渡しは未検証です。Node の絶対パスでソースの `mcp.js` を起動します。設定と分離環境の例は [MCP 接続手順](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)を参照してください。DSH SDK は読み込みません。初版は `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` の 4 ツールのみで、ネイティブカードはありません。batch／export と bind／complete は DSH 専用です。セッションの紐付けは移植せず、MCP レポートの `execution.session_id` は `null` です。
 
 MCP の 4 ツールはすべて有効な `VERISCOPE_STATE_DIR` の明示が必要です。未設定なら要確認を返し、パッケージ内にはフォールバックしません。doctor は一時プローブを作成・削除し、replay はレポートと受領書を書き込むため、どちらも読み取り専用ではありません。status／list は読み取り専用です。業務上の FAIL はツール実行エラーとは異なります。ホストでのツール呼び出し、Linux の実リプレイ、本バージョンの検証状況は[受入記録](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json)に分けて記録します。登録成功や独自クライアントの成功だけではホスト受入を証明しません。
 

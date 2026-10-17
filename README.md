@@ -98,7 +98,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 跨宿主 MCP（0.4.0）
 
-本版本提供 Claude Code／Codex 的 stdio MCP 配置：Claude 已完成隔离注册与连接，Codex 已完成隔离注册与配置回读；两者实际工具调用均待验。Windows 已验证，Linux 真实回放待验。使用绝对 Node 路径启动源码 `mcp.js`，配置及独立环境示例见 [MCP 接入说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)。无需加载 DSH SDK。首版只有 `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` 四工具，无原生卡片。batch／export 及 bind／complete 仍只在 DSH；会话绑定不会移植，MCP 报告的 `execution.session_id` 为 `null`。
+本版本已在独立 Claude Code／Codex 宿主通过真实工具调用（控制接口，无模型对话），Windows 与 Ubuntu 真实回放均已验证。Claude 错误路径只返回文本，完整结构化交付仍有待验项，详见验收记录。使用绝对 Node 路径启动源码 `mcp.js`，配置及独立环境示例见 [MCP 接入说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)。无需加载 DSH SDK。首版只有 `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` 四工具，无原生卡片。batch／export 及 bind／complete 仍只在 DSH；会话绑定不会移植，MCP 报告的 `execution.session_id` 为 `null`。
 
 MCP 四工具都要求显式、合法的 `VERISCOPE_STATE_DIR`；未设置时返回待复核，不回退包目录。doctor 会写入并清理临时探针，replay 会写报告和回执，二者不是只读；status／list 为只读。业务 FAIL 不等于工具执行错误。宿主工具调用、Linux 真实回放及本版本验收状态以 [验收记录](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json) 为准；注册成功或自写客户端通过不能替代宿主验收。
 
