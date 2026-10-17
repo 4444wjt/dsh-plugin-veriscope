@@ -39,7 +39,7 @@ node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy ex
 
 **平均が合格でも、最も弱い行を確認できます。** 指標ごとに最も悪い有効行と平均閾値を満たさない行数を表示します。診断だけでは判定を変えません。行ごとに制限するには `GatePolicyV2` の `row_threshold` を指定し、同じ方向・単位を使います。構成例では平均 0.81 に 0.41 の行が含まれ、平均だけなら PASS、各行 ≥0.5 を要求すれば FAIL です。V2 は元の JSON 数値トークンを正確な十進数として比較し、V1 の浮動小数点判定は変更しません。
 
-同梱の `docs/B2.md`、`schemas/`、`examples/builtin/` を参照してください。例は構成例であり、実評価ではありません。0.6.0 は未公開のローカル候補版です。0.5.0 の過去の証拠は `docs/acceptance-b2-v0.5.0.json` に残し、本候補版のホスト／Ubuntu 検証に流用しません。
+同梱の `docs/B2.md`、`schemas/`、`examples/builtin/` を参照してください。例は構成例であり、実評価ではありません。0.6.0 は npm に公開済みです。Windows と Ubuntu のリモート CI（固定上流の実リプレイを含む）は通過し、Claude の完全な構造化エラー受け渡しのみ未検証です。0.5.0 の過去の証拠は `docs/acceptance-b2-v0.5.0.json` に残します。
 
 ## 元の VeriScope 経路：設定後に始める
 

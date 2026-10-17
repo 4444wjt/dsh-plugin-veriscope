@@ -1,9 +1,9 @@
 {
   "schema_version": "RowThresholdAcceptanceV1",
   "version": "0.6.0",
-  "delivery": "local_candidate_uncommitted_unpublished",
+  "delivery": "published_npm_and_github_release",
   "baseline_commit": "fe7008efa0ca4d410c0746c0a36b94182c4b141f",
-  "recorded_at_utc": "2026-10-17T17:43:44.349747+00:00",
+  "recorded_at_utc": "2026-10-17T17:56:59.552662+00:00",
   "scope": "Per-metric diagnostics, opt-in row thresholds and separately versioned decimal comparison; no scoring.",
   "tests": {
     "tests": 412,
@@ -16,7 +16,20 @@
     "command": "node --test --test-reporter=tap",
     "node": "v24.21.0",
     "platform": "Windows",
-    "skips": "Two existing POSIX-specific cases; no added test skipped."
+    "skips": "Two existing POSIX-specific cases; no added test skipped.",
+    "ci": {
+      "workflow_run": "39055473960",
+      "jobs": 5,
+      "all_passed": true,
+      "matrix": [
+        "ubuntu-latest/Node 22",
+        "ubuntu-latest/Node 24",
+        "windows-latest/Node 22",
+        "windows-latest/Node 24"
+      ],
+      "ubuntu_real_python_replay": "passed",
+      "note": "在 PR #8 上运行；Ubuntu 固定上游真实回放通过。"
+    }
   },
   "semantics": {
     "GatePolicyV1": "Original Number/Kahan ordered mean decisions retained; diagnostics do not affect verdict.",
@@ -140,7 +153,6 @@
   "git_writes": false,
   "published": false,
   "pending": [
-    "Remote Ubuntu CI and Linux runtime acceptance for this candidate.",
     "Claude structured execution-error delivery beyond text."
   ],
   "limits": [
@@ -232,5 +244,28 @@
     "tests": "node --test",
     "example": "node scripts/check.mjs --archive examples/builtin/archive-row-risk.json --policy examples/builtin/policy-v2-row-050.json --json",
     "state": "Set explicit VERISCOPE_STATE_DIR before invocation; do not use default host profile."
-  }
+  },
+  "publication": {
+    "npm_version": "0.6.0",
+    "npm_dist_tag_latest": "0.6.0",
+    "npm_files": 55,
+    "npm_unpacked_bytes": 350260,
+    "npm_tarball_bytes": 112173,
+    "npm_integrity": "sha512-+TXZSk31o1xDomdRh2ue6XUSRkf2u5X4IYvx5wULH1v5OO0FCVuLnQ+qeuKX3UuQrNWvP9Q2NLGk2Zh7kx56JQ==",
+    "npm_tarball_sha256": "47eec01531ff6a82284270dedcd4cc3a6ba3cec7367205a4db9b462d74fe1cb9",
+    "npm_tarball_sha256_matches_accepted_package": true,
+    "attestations_present": true,
+    "git_tag": "v0.6.0",
+    "git_commit": "7c8aa86",
+    "pull_request": "https://github.com/4444wjt/dsh-plugin-veriscope/pull/8",
+    "published_at_utc": "2026-10-17T17:56:00Z",
+    "note": "发布前后 tarball 字节一致；npm 处理约 3 分钟后可下载。"
+  },
+  "resolved_after_release": [
+    {
+      "item": "Remote Ubuntu CI and Linux runtime acceptance for this candidate.",
+      "status": "passed",
+      "evidence": "workflow run 39055473960：ubuntu-latest Node 22/24 与 Ubuntu 固定上游真实回放均通过。"
+    }
+  ]
 }
