@@ -1,0 +1,191 @@
+# VeriScope 오프라인 게이트 리플레이 · DSH 플러그인
+
+[中文](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.md) · [English](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.en.md) · [日本語](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ja.md) · **한국어**
+
+> 이 문서는 중국어 원문의 번역입니다. 해석이 다를 경우 중국어 원문을 우선합니다. 모든 절을 번역했지만 세부 조건은 원문도 함께 확인하십시오.
+
+기존 VeriScope 평가 JSON을 DSH에 연결하고 원래의 Python Quality Gate를 호출해 **통과／실패／재확인 필요**, 현재 영수증의 유효성과 출처를 반환합니다.
+
+[GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 수동 동기화 미러](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · VeriScope 본체: [메인](https://github.com/4444wjt/RAG_Evaluation_Demo)／[미러](https://gitee.com/kkbushishou/rag-hallucination-evaluator). 이슈와 PR은 GitHub로.
+
+Python이 유일한 수치 판정자입니다. REVIEW가 PASS로 바뀌지 않으며, 확정된 FAIL이 부수적 이상으로 덮이지 않습니다. PASS는 아카이브 지표가 연결된 게이트를 통과했다는 것만 뜻하며, 답변의 사실 정확성을 증명하지 않습니다. 이 플러그인은 재평가하지 않고, 아카이브를 수정하지 않으며, 배포나 Git 작업을 수행하지 않습니다.
+
+---
+
+이 플러그인은 기존 VeriScope 평가 아카이브를 재확인하며 프롬프트를 최적화하거나 답변을 다시 쓰지 않습니다. 원래의 Python Quality Gate를 호출하고, 판정에 사용한 입력·임계값·실행 환경을 기록하며, 영수증이 현재도 유효한지 확인합니다. PASS는 아카이브 지표가 연결된 게이트 조건을 충족한다는 뜻일 뿐이며, 전체 배포 검증을 대신하지 않습니다.
+
+현재 허용되는 입력은 VeriScope 아카이브 형식뿐입니다. 범용 형식과 어댑터는 아직 없습니다. 지원하지 않는 형식은 거부하며, 추측하거나 환산하지 않습니다.
+
+## 설정 후 30초 시작
+
+환경을 설정한 뒤(다음 절) DSH에서 차례로 입력합니다.
+
+1. "`veriscope_doctor`로 이 컴퓨터 환경을 점검하고 고칠 점을 알려줘."
+2. "VeriScope로 `D:\data\evaluation-result.json`을 검사하고 통과 여부와 이유를 설명해줘."
+3. "`veriscope_gate_list`로 최근 게이트 영수증과 현재 유효성을 나열해줘."
+
+다음도 사용할 수 있습니다.
+
+> 지난 게이트 결과가 지금도 유효한지 확인해줘.
+
+진단의 "환경 준비 완료"는 환경이 사용 가능하다는 뜻일 뿐이며, 게이트 통과에는 실제 리플레이가 필요합니다. 채팅이 도구를 자동 선택하는지는 DSH 모델 설정에 달려 있습니다. 필요하면 도구 이름을 직접 쓰십시오.
+
+자주 쓰는 세 장면:
+
+- **관리자에게 보내기**: "이번 실패를 공유 가능한 요약으로 만들어줘." `format: "share"`가 로컬 Markdown을 생성합니다. 먼저 검토한 뒤 직접 공유하십시오. 영수증이 아닙니다.
+- **아카이브가 열리지 않음**: 확인 가능한 범위에서 이상 행·열이나 필드 위치를 알려 줍니다. 파일은 수정하지 않습니다.
+- **어제는 통과, 오늘은 재확인 필요**: 확인된 임계값·버전·입력 다이제스트 변화를 나열하고, 확인할 수 없는 범위는 미확인으로 남깁니다.
+
+작업 완료 조건에 게이트 검사를 연결하려면 이번 검사를 작업에 바인딩합니다. 연결된 영수증이 현재 유효하고 PASS일 때만 완료를 등록할 수 있습니다.
+
+**사용 전에 VeriScope와 Python 경로를 설정하십시오. 새 평가 모델 호출은 발생하지 않습니다.**
+
+## 설치와 설정
+
+npm에 정식 배포 패키지가 있습니다. 검증된 DSH CLI에서는 프로필을 명시해야 합니다. 아래는 전용 `veriscope-demo`를 사용합니다.
+
+```powershell
+# 설치
+dsh plugin --profile veriscope-demo add dsh-plugin-veriscope
+# 설치된 버전 확인
+dsh plugin --profile veriscope-demo list dsh-plugin-veriscope --depth 0
+# 제거
+dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
+```
+
+로컬 개발이나 사용자 정의를 위해서는 로컬 디렉터리에서 대신 설치할 수 있습니다.
+
+```powershell
+dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
+```
+
+경로는 실제 소스 위치로 바꾸십시오. 디렉터리나 link 설치를 registry 설치의 증거로 삼지 마십시오. **설치 성공은 게이트 통과가 아닙니다.** 첫 사용에는 `VERISCOPE_ROOT`와 `VERISCOPE_PYTHON` 설정과 진단이 필요합니다. npm 패키지에는 테스트와 `docs`가 포함되지 않습니다. `npm test`는 소스 개발용이고, `node scripts/verify-replay.mjs`도 전체 소스 저장소와 검증 자료가 있을 때만 동작하며 설치 후 기능이 아닙니다. 자세한 문서는 저장소를 참조하십시오.
+
+검증 환경: Windows, DSH NEXT 2.0.18-next, 내부 DSH／tools／skill **0.2.1-alpha.2**. Node ≥22.19. 다른 호스트 버전은 미검증입니다. 상위 및 Python／pandas 호환도 필요하며 고정 의존성은 [상위 설명](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)에 있습니다. 이 플러그인은 상위 전체나 업무 아카이브를 동봉하지 않습니다.
+
+### 설정 항목
+
+**설정 UI가 없고 `.env`도 자동으로 읽지 않습니다.** 경로는 호스트 프로세스 환경 변수만 참조하며, cordis patch는 `completionMode`만 받습니다. 호스트의 환경 로딩 정책은 호스트의 몫입니다.
+
+| 설정 | 진입점 | 기본값과 요구 사항 |
+|---|---|---|
+| `veriscopeRoot` | `VERISCOPE_ROOT` | `D:\RAG_Evaluation_Demo`. 다른 컴퓨터에서는 명시 설정 |
+| `pythonPath` | `VERISCOPE_PYTHON` | 상위의 `.venv`／`venv`를 차례로 탐색. PATH로 대체하지 않음 |
+| 상태 루트 | `VERISCOPE_STATE_DIR` | `<플러그인>/.local`. 명시 값 우선, 읽기 전용 설치에도 사용 가능 |
+| 알림 모드 | cordis patch `completionMode` | `off`. `off` 또는 `remind`만 허용, 그 외는 오류 |
+
+세 환경 변수의 명시 값은 비어 있지 않은 절대 경로여야 하며, 잘못된 값이 조용히 대체되지 않습니다. **DSH를 시작하는 같은 터미널**에서 설정한 뒤 시작하거나 완전히 재시작하십시오. 아래 마지막 줄은 위의 npm 설치 대신 GitHub에서 설치할 때 사용하는 명령입니다. 이미 설치했다면 실행할 필요가 없습니다.
+
+```powershell
+$env:VERISCOPE_ROOT = 'D:\your-workspace\VeriScope'
+$env:VERISCOPE_PYTHON = 'D:\your-workspace\VeriScope\venv\Scripts\python.exe'
+$env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
+dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
+```
+
+전용 프로필과 해당 호스트 CLI를 먼저 준비하십시오. 설치 명령은 완전한 호스트 설정을 만들지 않습니다. 플러그인 bundle이 기본 항목을 삽입하므로 `<DSH_HOME>/profiles/<이름>/cordis.patch.yml`에서 기존 `id`를 덮어쓰고 다시 `insert`하지 마십시오.
+
+```yaml
+- id: dsh-plugin-veriscope
+  config:
+    completionMode: "remind"
+```
+
+`off`는 턴 종료 알림을 끄며 모든 도구는 계속 사용할 수 있습니다. `remind`는 미완료 연결 작업만 알리며 일반 채팅의 전면 차단을 약속하지 않습니다. 경로는 이 config에 쓸 수 없습니다.
+
+## 여덟 개의 도구
+
+| 도구 | 용도 |
+|---|---|
+| `veriscope_doctor({})` | 경로, 스크립트 계약, Python／pandas, 상태 루트 쓰기, 최근 영수증을 점검하고 준비 완료 또는 재확인 필요와 수정 제안을 반환 |
+| `veriscope_gate_replay({result_path, baseline?, faith?, ctx?})` | 기존 아카이브로 게이트를 실제 실행하고 독립 기록을 저장하며, 조건 충족 시 ReceiptV1 생성 |
+| `veriscope_gate_status({run_id, faith?, ctx?, baseline_run_id?})` | 영수증의 현재 유효성을 읽기 전용으로 확인. 리플레이·채점·새 영수증 없음 |
+| `veriscope_gate_list({limit?})` | 기본 최근 50건(1–200). 항목별로 status를 재사용하고 손상 기록은 따로 표시 |
+| `veriscope_gate_batch({paths?, dir?, baseline?, faith?, ctx?})` | 경로 배열 또는 디렉터리 중 하나. 순차 리플레이, 최대 200건, 취소 가능, 건별 기록 |
+| `veriscope_gate_export({run_id?, run_ids?, format})` | 1–50건을 상태 루트 `exports/`에 내보냄. `share`는 허용 목록 요약, `md`는 전체 보고서, `json`은 원본 영수증. 덮어쓰지 않음 |
+| `veriscope_gate_bind({task_id, run_id, faith?, ctx?, baseline_run_id?})` | 호스트가 제공하는 이 세션 안에서 관리 작업과 현재 영수증을 연결 |
+| `veriscope_gate_complete({task_id, run_id})` | 세션 연결을 재확인하고 현재 유효한 PASS에서만 완료를 등록 |
+
+### 매개변수와 규칙
+
+- 임계값은 기본 0.8이며 0–1의 유한값이어야 하고, PASS를 얻기 위해 자동으로 낮추지 않습니다.
+- 아카이브 상대 경로는 `VERISCOPE_ROOT` 기준입니다.
+- `baseline_run_id`는 생략하면 원래 기준선 유지, `null`은 기준선 없음, UUID는 현재 상태 루트의 유효한 영수증을 참조합니다.
+- `task_id`는 영문·숫자·밑줄·점·하이픈 1–80자이며, 세션 식별자는 도구 인수로 위조할 수 없습니다. 연결은 메모리에만 있고 재시작 후 다시 연결해야 하며, 디스크의 완료 기록이 권한을 복원하지 않습니다.
+
+"유효성 확인"은 status, "게이트 재실행"은 replay입니다. 실제 replay만 영수증을 만듭니다. 입력·기준선·정책·상위·플러그인·환경이 바뀌면 기존 영수증은 재확인 필요가 되고 과거 실패는 보존됩니다. 자세한 내용은 [영수증 프로토콜](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md).
+
+### 입력과 출력 예시
+
+```text
+veriscope_doctor({})
+-> {status:"READY", ready:true, summary:"环境就绪", items:[…]}
+veriscope_gate_list({limit:10})
+-> {items:[{run_id:…, historical_verdict:"PASS", current_verdict:"REVIEW", …}], damaged:[…]}
+veriscope_gate_batch({paths:["a.json","b.json","broken.json"]})
+-> {status:"FAIL", counts:{pass:1, fail:1, review:0, error:1}, …}
+veriscope_gate_export({run_id:"실제 실행 UUID", format:"md"})
+-> {exported:true, path:"<상태 루트>/exports/<고유 파일명>.md", …}
+veriscope_gate_export({run_id:"실제 실행 UUID", format:"share"})
+-> {exported:true, share_summary:{schema_version:"GateShareSummaryV1", is_receipt:false, …}, …}
+```
+
+위는 필드 예시이며 실측 업무 결과가 아닙니다. 배치는 **FAIL이 하나라도 있으면 FAIL로 집계**하고, FAIL이 없어도 재확인 필요·오류·취소·미처리가 있으면 REVIEW입니다. 디렉터리는 바로 아래 JSON만 읽고 재귀하지 않습니다. 오류가 확정된 실패를 덮지 않으며, 실패가 다음 리플레이를 막지도 않습니다.
+
+### 목록·배치·내보내기
+
+목록은 최대 10,000개 디렉터리 항목을 스캔하고 초과 시 재확인 필요를 명시합니다. `limit` 범위를 벗어난 영수증은 현재 환경에서 재확인하지 않습니다. 손상 영수증의 시각을 신뢰할 수 없으면 디렉터리 수정 시각으로 정렬하고 그 사실을 표시합니다. 단일 JSON 내보내기는 원본 영수증과 바이트 단위로 같고, 여러 건은 원본 영수증 객체 배열입니다. JSON 안의 과거 PASS는 현재 유효를 뜻하지 않으며 현재 상태는 반환값의 `current`를 보십시오. Markdown은 과거와 현재 상태, 아카이브 지표, 임계값, 근거 건수, 제한을 함께 적습니다. 진단은 자체 임시 프로브만 만들고 지우며, 설정 변경이나 의존성 설치를 하지 않습니다.
+
+`share`는 별도 Markdown을 만들며 고정 상태, 알려진 사유, 제한된 지표와 임계값, 건수, 엄격한 버전 번호만 담습니다. 경로, 원문, 로그, 모델 이름, 시각, 해시, 알 수 없는 필드는 제외하고 실행 번호는 "기록1" 같은 별칭으로 바꿉니다. 공유할 것은 **파일 본문 또는 `share_summary`** 입니다. 도구 반환값 전체에는 로컬 파일 위치가 포함됩니다. 수치와 버전도 민감할 수 있으니 먼저 검토하십시오. 요약은 status／bind／complete에 쓸 수 없고, 사실 정확성을 증명하지 않으며, 모든 비밀 탐지를 보장하지 않습니다.
+
+### 이상 위치와 변화 설명
+
+JSON이 거부되면 `execution.errors[].diagnostic`이 확인 가능한 발견 지점을 제공합니다. 행과 열은 1부터 시작하고 디코딩된 UTF-16 단위로 세며, CRLF는 한 번의 줄바꿈으로 봅니다. 제한된 필드 경로를 안전하게 특정할 수 없으면 `null`이며 원문을 되돌려 주지 않습니다. 위치가 유일한 변경 지점은 아니며, 자동 수정이나 추가 재시도를 하지 않습니다.
+
+status의 `changes`는 원본 영수증과 이번에 캡처한 고정 연결 항목의 차이만 설명하고 최대 20개까지 표시하며 잘림을 밝힙니다. `COMPLETE`는 나열된 범위를 확인했다는 뜻일 뿐이며 변화가 없다고 사실 정확성을 뜻하지 않습니다. `UNVERIFIED`는 일부 또는 전부를 확인하지 못했다는 뜻이고 확인된 변화는 계속 나열됩니다. 계약 검사 실패는 원래 거부 경로를 유지하고 나머지는 미확인으로 둡니다. 검사를 우회해 비교를 조작하지 않고, 그것으로 점수 변화를 귀속시키지도 않습니다.
+
+## 네이티브 결과 카드
+
+`tool.call.toolview`를 지원하는 호스트는 어두운 배경에 금색 포인트의 중국어 결과 카드를 표시합니다. 현재의 세 가지 판정 상태, 다음 단계, "다시 확인" 버튼, 접히는 근거입니다. 버튼은 상태를 읽기만 하고 리플레이하거나 완료를 등록할 수 없습니다. 카드 인터페이스가 없으면 중국어 도구 텍스트를 유지합니다.
+
+접히는 근거에는 중국어 사유, 영수증 임계값, Node／Python／pandas 버전, 입력 경로, 바이트 수, SHA-256 앞 12자리가 들어갑니다. 빠진 값은 알 수 없음으로 남습니다. 이는 영수증이 연결한 과거 환경 서술이며 현재 유효성은 이번 확인에 따릅니다.
+
+이 영역에는 연결 항목의 변화와 미확인 안내도 표시됩니다. 원래 리플레이에 확인 가능한 아카이브 이상 위치가 있으면 함께 보여 주고 과거 진단으로 표시합니다. 버전 정보는 게이트 실행 환경이며 원래 모델 평가 환경을 대신하지 않습니다.
+
+카드는 열 때마다 같은 명시적 임계값／기준선 정책으로 다시 확인하고 과거 PASS를 그대로 보여 주지 않습니다. 로딩 실패, 정책 무효, 이 세션 연결 부재, 프로토콜 불완전은 모두 재확인 필요입니다. 표시는 그 확인 시점만 뜻하며 파일을 계속 감시하지 않습니다. 사용 전에 다시 확인할 수 있습니다. 네이티브 카드에는 경로 설정 패널이 없습니다.
+
+## 세 가지 상태와 판정 규칙
+
+플러그인은 기존 평가 결과를 읽고 게이트를 실행해 통과(PASS), 실패(FAIL), 재확인 필요(REVIEW) 중 하나를 반환합니다.
+
+| 현재 상태 | `gate_passed` | 의미 |
+|---|---|---|
+| PASS | `true` | Python 통과, 영수증 완전, 이번 확인 연결 항목 불변 |
+| FAIL | `false` | Python이 명시적으로 차단, 영수증 완전, 현재 연결 항목 불변 |
+| REVIEW | `null` | 입력·의존성·영수증·실행 불완전, 연결 항목 변화, 또는 프로토콜 충돌 |
+
+replay가 FAIL을 확정한 뒤 영수증 쓰기에 실패해도 핵심 FAIL은 보존됩니다. 이후 status는 완전한 영수증이 없어 재확인 필요가 됩니다. 원래 report의 FAIL 기록은 읽을 수 있고 검증할 수 없는 과거 필드는 unknown으로 남습니다. Python이 1로 종료해도 traceback뿐이면 REVIEW입니다.
+
+## 출력과 데이터 경계
+
+기록은 `<상태 루트>/runs/<run_id>/`에 `report.json`, stdout, stderr, 조건을 갖춘 경우 `receipt.json`으로 저장됩니다. 완료 등록은 `completions/`에 따로 저장합니다. 추가 기록은 실패를 덮지 않습니다. 로그에는 아카이브 일부와 로컬 경로가 들어갈 수 있으니 공유 전에 가리십시오. 플러그인은 아카이브를 업로드하지 않고 전체 환경을 출력하지 않습니다.
+
+입력은 10MiB, stdout／stderr는 각 2MiB, 리플레이는 120초, 환경 진단은 매번 10초로 제한됩니다. status는 파일을 읽고 해시하며 Python을 띄워 버전과 pandas 메타데이터를 읽지만, 평가 모델이나 게이트 스크립트는 실행하지 않습니다. 해시는 의미적 정확성을 증명하지 않으며 상태 루트 전체를 다시 쓸 수 있는 사용자는 대상이 아닙니다. 확인 이후의 변화는 다시 확인해야만 발견됩니다.
+
+과거 Trace는 글자 그대로의 출처만 대조하고 `historical_ai`로 표시합니다. 새로운 의미 검사가 아닙니다. 핵심은 새 평가 모델 호출이 0이며, 호스트 대화에는 여전히 토큰 비용이 들 수 있습니다. 알고리즘 독창성이나 엔드투엔드 비용 절감을 주장하지 않습니다.
+
+## 검증과 유지보수
+
+```powershell
+node --test
+node scripts/replay.mjs --result 'D:\your-data\evaluation.json' --json
+dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
+```
+
+단위 테스트는 구성한 아카이브와 프로토콜 스텁을 쓰며 모델도 Python도 필요로 하지 않습니다. 실제 Python과 호스트 검증은 [검증 노트](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md)를 보십시오. 제거는 등록을 지우고 사용자 상태와 과거 증거는 보존합니다. 소스에서 배포하려면 `VERISCOPE_RELEASE=1`을 명시하고 버전／tag 가드를 통과해야 합니다. 자세한 내용은 기여 안내를 보십시오.
+
+## 기여와 라이선스
+
+[기여 안내](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/CONTRIBUTING.md) · [거버넌스](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/GOVERNANCE.md) · [변경 기록](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/CHANGELOG.md) · [로드맵](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/ROADMAP.md) · [보안](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/SECURITY.md) · [릴리스 점검](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RELEASE_CHECKLIST.md). 마켓 PR이 병합되기 전에는 등재되었다고 말하지 않습니다.
+
+MIT이며 스캐폴드 원저작자 표기를 유지합니다. 출처는 [제3자 고지](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/THIRD_PARTY_NOTICES.md)와 [출처 해시](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/provenance.json)를 보십시오. 상위는 별도 배포이며 자체 라이선스를 따릅니다.

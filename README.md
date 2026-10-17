@@ -1,30 +1,32 @@
 # VeriScope 离线门禁重放 · DSH 插件
 
-把已有 VeriScope 评测 JSON 接入 DSH，调用原 Python Quality Gate，返回**通过／失败／待复核**、当前回执有效性与来源。v0.3.1 补充求助摘要、JSON 错误定位和绑定项变化说明。
+**中文** · [English](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.en.md) · [日本語](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ja.md) · [한국어](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ko.md)
+
+把已有的 VeriScope 评测 JSON 接入 DSH，调用 VeriScope 原有的 Python Quality Gate，返回**通过／失败／待复核**、当前回执有效性与来源。
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手动镜像](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · 完整 VeriScope：[主仓库](https://github.com/4444wjt/RAG_Evaluation_Demo)／[镜像](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue 和 PR 请提交到 GitHub。
 
 Python 是唯一数值裁判；REVIEW 永不转为 PASS，已确认 FAIL 不被附加异常遮盖。PASS 只说明归档指标通过所绑定门禁，不证明回答事实正确。插件不重新评测、不修改归档、不执行发布或 Git 操作。
 
-## 怎么用
+---
 
-**30 秒上手**：配置好下面的环境后，在 DSH 中依次输入：
+本插件复查已有的 VeriScope 评测归档，不优化提示词，也不改写回答。它调用原有的 Python Quality Gate，记录判定所用的输入、阈值与执行环境，并检查回执当前是否有效。PASS 仅表示归档指标满足所绑定的门禁条件，不能代替完整发布验收。
+
+当前接受的输入是 VeriScope 归档格式；通用归档格式与适配器尚未提供。不支持的格式会被拒绝，不会猜测或换算。
+
+## 配置完成后，30 秒上手
+
+配置好环境后（见下一节），在 DSH 中依次输入：
 
 1. “使用 `veriscope_doctor` 检查本机环境，告诉我需要修复什么。”
 2. “使用 VeriScope 检查 `D:\数据\评测结果.json`，说明是否通过及原因。”
 3. “使用 `veriscope_gate_list` 列出最近的门禁回执与当前有效性。”
 
-体检的“环境就绪”仅表示环境可用，门禁通过需实际重放。聊天能否自动选中工具取决于 DSH 的模型配置；需要时直接写出工具名。
-
-插件读取已有评测结果，执行门禁检查，展示三种状态：
-
-- **通过（PASS）**：满足当前阈值。
-- **未通过（FAIL）**：存在未达标项。
-- **待复核（REVIEW）**：材料缺失或结果有效性无法确认。
-
 之后还可以说：
 
 > 检查上次的门禁结果现在是否仍然有效。
+
+体检的“环境就绪”仅表示环境可用，门禁通过需实际重放。聊天能否自动选中工具取决于 DSH 的模型配置；需要时直接写出工具名。
 
 三个常见的小场景：
 
@@ -34,7 +36,7 @@ Python 是唯一数值裁判；REVIEW 永不转为 PASS，已确认 FAIL 不被�
 
 需要约束任务完成时，可以要求绑定本次检查；只有绑定的回执当前有效且为 PASS，才能登记完成。
 
-**使用前需配置 VeriScope 与 Python 路径。插件复查已有结果，不会重新调用评测模型；聊天中能否自动选中工具，取决于 DSH 的模型配置。**
+**使用前请配置 VeriScope 与 Python 路径；插件不会重新调用评测模型。**
 
 ## 安装与配置
 
@@ -59,7 +61,9 @@ dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 
 已验证：Windows、DSH NEXT 2.0.18-next，内部 DSH／tools／skill **0.2.1-alpha.2**。Node ≥22.19；其他宿主版本未验证。另需兼容上游及 Python／pandas，固定依赖见 [上游说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)。插件不附送完整上游或业务归档。
 
-**没有 settings UI，不自动读取 `.env`。**路径只读宿主进程环境变量；cordis patch 只接受 `completionMode`。宿主自己的环境加载策略由宿主决定。
+### 配置项
+
+**没有 settings UI，不自动读取 `.env`。** 路径只读宿主进程环境变量；cordis patch 只接受 `completionMode`。宿主自己的环境加载策略由宿主决定。
 
 | 配置 | 入口 | 默认值与要求 |
 |---|---|---|
@@ -74,6 +78,7 @@ dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 $env:VERISCOPE_ROOT = 'D:\your-workspace\VeriScope'
 $env:VERISCOPE_PYTHON = 'D:\your-workspace\VeriScope\venv\Scripts\python.exe'
 $env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
+# 若从 GitHub 安装，可用此命令替代前文的 npm 安装命令
 dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 ```
 
@@ -100,11 +105,16 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 | `veriscope_gate_bind({task_id, run_id, faith?, ctx?, baseline_run_id?})` | 在宿主提供的本会话内绑定受管任务与当前回执 |
 | `veriscope_gate_complete({task_id, run_id})` | 复验本会话绑定，只在当前有效 PASS 下登记完成 |
 
-阈值默认0.8，须为0–1有限数值，不为获得 PASS 自动调低。归档相对路径以 `VERISCOPE_ROOT` 为基准。`baseline_run_id` 省略保持原基线，`null` 要求无基线，UUID 引用当前状态根中的有效回执。`task_id` 为1–80位字母、数字、下划线、点或连字符；会话标识不接受工具参数伪造。绑定只在内存中，重启需重新绑定，磁盘完成记录不会恢复授权。
+### 参数与使用规则
+
+- 阈值默认 0.8，须为 0–1 有限数值，不为获得 PASS 自动调低。
+- 归档相对路径以 `VERISCOPE_ROOT` 为基准。
+- `baseline_run_id` 省略保持原基线，`null` 要求无基线，UUID 引用当前状态根中的有效回执。
+- `task_id` 为 1–80 位字母、数字、下划线、点或连字符；会话标识不接受工具参数伪造。绑定只在内存中，重启需重新绑定，磁盘完成记录不会恢复授权。
 
 “检查有效性”用 status；“重新执行门禁”用 replay。只有实际 replay 能生成回执。输入、基线、策略、上游、插件或环境变化时，旧回执进入待复核，历史失败仍保留。详见 [回执协议](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md)。
 
-新工具的输入与输出示例：
+### 输入与输出示例
 
 ```text
 veriscope_doctor({})
@@ -121,13 +131,17 @@ veriscope_gate_export({run_id:"实际运行 UUID", format:"share"})
 
 以上为字段示例，不是实测业务结果。批量**有 FAIL 就汇总为 FAIL**；没有 FAIL 但存在待复核、错误、取消或未处理项时为 REVIEW。目录只读直接包含的 JSON，不递归。错误不掩盖已确认失败，失败不阻止下一份重放。
 
+### 清单、批量与导出
+
 清单最多扫描 10,000 个目录项，超限明确待复核；`limit` 范围外的回执不做当前环境复验。坏回执时间不能可信读取时，排序使用目录修改时间并标明来源。导出单条 JSON 与原回执字节一致，多条为原回执对象数组；JSON 中历史 PASS 不代表当前有效，当前状态另见工具返回的 `current`。Markdown 同时列历史与当前状态、归档指标、阈值、证据条数和限制。体检只创建并清理自身临时写入探针，不改配置或安装依赖。
 
 `share` 另生成 Markdown，只取固定状态、已知原因、有限指标/阈值、计数和严格版本号；省略路径、原文、日志、模型标签、时间、哈希及未知字段，以“记录1”等别名代替运行编号。请分享**文件正文或 `share_summary`**，整个工具返回仍含本地文件位置。数值和版本也可能敏感，请先预览。摘要不能用于 status/bind/complete，不证明事实正确，也不保证识别全部秘密。
 
+### 异常定位与变化说明
+
 JSON 拒绝时，`execution.errors[].diagnostic` 提供可确认的发现点：行列从 1 开始，按解码后 UTF-16 计数；CRLF 视为一次换行。受限字段路径无法安全确定时为 `null`，不回显原文。位置不一定是唯一修改点；不自动修复或额外重试。
 
-status 新增 `changes`：只解释原回执与本次捕获的固定绑定字段，最多显示 20 项并标明截断。`COMPLETE` 仅指所列范围已核对，未变化也不代表事实正确；`UNVERIFIED` 表示部分或全部未核实，已确认变化仍可列出。契约校验失败沿用原拒绝路径，其余未核实，不绕过检查补造对照，也不据此归因分数变化。
+status 的 `changes` 只解释原回执与本次捕获的固定绑定字段，最多显示 20 项并标明截断。`COMPLETE` 仅指所列范围已核对，未变化也不代表事实正确；`UNVERIFIED` 表示部分或全部未核实，已确认变化仍可列出。契约校验失败沿用原拒绝路径，其余未核实，不绕过检查补造对照，也不据此归因分数变化。
 
 ## 原生结果卡
 
@@ -139,7 +153,9 @@ status 新增 `changes`：只解释原回执与本次捕获的固定绑定字段
 
 卡片打开时按同一组显式阈值/基线策略重新检查，不直接显示历史 PASS；加载失败、策略无效、缺少本会话关联或协议不完整均为待复核。显示仅代表所示检查时刻，不持续监视文件，使用前可再次检查。原生卡片不提供路径设置面板。
 
-## 输出与数据边界
+## 三态与判定规则
+
+插件读取已有评测结果，执行门禁检查，展示三种状态：通过（PASS）、未通过（FAIL）和待复核（REVIEW）。
 
 | 当前状态 | `gate_passed` | 含义 |
 |---|---|---|
@@ -147,11 +163,13 @@ status 新增 `changes`：只解释原回执与本次捕获的固定绑定字段
 | FAIL | `false` | Python 明确拦截，回执完整且当前绑定项未变 |
 | REVIEW | `null` | 输入、依赖、回执或执行不完整，或绑定项变化、协议冲突 |
 
-replay 确认 FAIL 后即使回执写入失败，核心 FAIL 仍保留；后续 status 因缺少完整回执为当前 REVIEW。原 report 的 FAIL 记录仍可阅读，无法校验的历史字段保持 unknown。Python 退出1但只有 traceback 仍为 REVIEW。
+replay 确认 FAIL 后即使回执写入失败，核心 FAIL 仍保留；后续 status 因缺少完整回执为当前 REVIEW。原 report 的 FAIL 记录仍可阅读，无法校验的历史字段保持 unknown。Python 退出 1 但只有 traceback 仍为 REVIEW。
+
+## 输出与数据边界
 
 记录在 `<状态根>/runs/<run_id>/`，包含 `report.json`、stdout、stderr，以及符合生成条件的 `receipt.json`；完成登记另存 `completions/`。追加记录不覆盖失败。日志可能含归档片段与本地路径，分享前脱敏；插件不上传归档或打印完整环境。
 
-输入限10MiB，stdout／stderr各2MiB，重放120秒，环境探测每次10秒。status 会读取并哈希文件、启动 Python 查版本及 pandas 元数据，不运行评测模型或门禁脚本。哈希不证明语义正确，不抵御能重写整个状态根的用户；检查后的变化需再次检查发现。
+输入限 10MiB，stdout／stderr 各 2MiB，重放 120 秒，环境探测每次 10 秒。status 会读取并哈希文件、启动 Python 查版本及 pandas 元数据，不运行评测模型或门禁脚本。哈希不证明语义正确，不抵御能重写整个状态根的用户；检查后的变化需再次检查发现。
 
 历史 Trace 仅核对逐字出处，标 `historical_ai`，不是新语义核查。内核零新增评测模型调用，宿主对话仍可能产生 token 费用；不宣称算法首创或端到端降本。
 
@@ -164,6 +182,8 @@ dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
 ```
 
 单元测试使用构造归档和协议桩，不需要模型或 Python。真实 Python 与宿主验收另见 [验证说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md)。卸载移除注册，保留用户状态与历史证据。源码发布须显式设置 `VERISCOPE_RELEASE=1`，并通过版本／tag 守卫；详见贡献指南。
+
+## 贡献与许可
 
 [贡献指南](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/CONTRIBUTING.md) · [治理规则](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/GOVERNANCE.md) · [更新记录](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/CHANGELOG.md) · [路线图](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/ROADMAP.md) · [安全报告](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/SECURITY.md) · [发布检查](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RELEASE_CHECKLIST.md)。市场 PR 未合并前不称已收录。
 
