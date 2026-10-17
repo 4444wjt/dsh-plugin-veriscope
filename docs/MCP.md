@@ -128,7 +128,7 @@ node scripts/verify-mcp.mjs
 
 第二条需要配置真实的 `VERISCOPE_ROOT`、`VERISCOPE_PYTHON` 及独立 `VERISCOPE_STATE_DIR`，并具备匹配契约的上游源码和 pandas。结果写入该状态根的 `verification/`。它是**自写 stdio 客户端＋真实 Python 回放**，不会伪装为 Claude Code／Codex 宿主验收。
 
-新增 Ubuntu CI 定义使用固定上游提交、Python 3.11.9、pandas 3.0.6 与公开构造样例验证 PASS／FAIL／REVIEW。仅添加作业不代表远端已通过，尚未运行的项保持 pending。构造样例不称为真实用户历史。
+Ubuntu 远端 CI 已使用固定上游提交、Python 3.11.9、pandas 3.0.6 与公开构造样例实跑 PASS／FAIL／REVIEW；Ubuntu／Windows × Node 22／24 测试矩阵通过。首次 venv 符号链接问题已修复，失败运行保留。构造样例不称为真实用户历史。
 
 实际进度见 [版本验收记录](acceptance-mcp-v0.4.0.json)：DSH 真实 ToolRuntime、Claude Code、Codex 逐宿主分别记录。注册、握手、发现和实际工具调用分开；无法在零模型调用下完成真实调用时保留 pending，不用自写客户端补齐。
 
@@ -142,8 +142,12 @@ node scripts/verify-mcp.mjs
 |---|---|---|
 | 独立部署与依赖 | tarball 正常干净安装、实际 bin 与真实 Python 三态通过；未安装 DSH alpha 包 | 发布状态以 npm／GitHub Release 为准 |
 | 状态根持久性 | MCP 强制显式目录；所有模式默认无限期保留 | DSH 兼容默认仍在包内，建议外置；没有备份恢复保证 |
-| Windows／POSIX | Windows 原契约和 LF 契约均真实回放通过；POSIX 配置分支单测通过 | Ubuntu 远端单测与真实回放 CI 待运行 |
-| 宿主接入 | DSH 真实 ToolRuntime 通过；Claude 隔离注册与连接通过；Codex 隔离配置回读通过 | Claude／Codex 实际工具调用、三家宿主同档比较仍待验 |
+| Windows／POSIX | Windows 原契约和 LF 契约均真实回放通过；POSIX 配置分支单测通过 | Ubuntu 真实回放及单测已通过；macOS 真实运行未验 |
+| 宿主接入 | DSH ToolRuntime 29 次；正式 npm 包在 Claude／Codex 各 10 次真实控制接口调用，无模型对话 | Claude 错误路径只回文本；三家四例全部字段一致未通过 |
 | 生命周期 | 只读 CLI 展示容量、记录及未核实的关联 | 无自动到期、删除、集中运维或多用户权限体系 |
 
-本机共 264 项测试通过，其中原有 202 项保留、新增 62 项（含 10 项 SDK 启动诊断）。DSH 与 MCP 自写客户端的四个案例在保留状态、指标、阈值、证据摘要及诊断代码后逐字段一致；该对照不替代 Claude／Codex 实际宿主验收。详细结果与待验原因见版本验收 JSON。
+当前共 266 项测试：Windows 264 通过、2 个 POSIX 专项跳过；Ubuntu 266 全通过。正式 npm 包已下载校验，正常干净安装未拉入 DSH alpha 包，bin 握手与实际宿主调用通过。
+
+两家宿主的四工具分别经真实控制接口调用；没有发送用户对话或模型回合，不等于模型自动选工具或完整聊天体验已验证。四例的门禁裁决相同，其中三例可从三家宿主的结构化响应比较全部 11 个保留字段。非法 JSON 的 REVIEW 在 Claude Code 2.1.278 控制 API 中以错误文本返回；其落盘报告缺少稍后附加的 `RECEIPT_UNAVAILABLE`，该代码能在宿主错误文本中看到。没有补填或删除字段来凑齐一致；完整结构化错误交付保留为未通过。
+
+0.4.0 的 npm 包与标签保留发布时内容；发布后的补验记录更新在仓库中，不移动已发布标签或覆盖包。详细记录与失败证据见版本验收 JSON。

@@ -6,11 +6,11 @@
 
 - DSH 启动新增 SDK 缺失、版本／接口不兼容、加载失败的明确诊断；加载 SDK 代码前核对版本，MCP 不加载 SDK，不自动安装或切换。
 - 新增零运行时依赖的 stdio MCP 入口；首版提供 doctor、replay、status、list，工具定义与 DSH 共享。DSH 八工具和原生卡保留，受管会话绑定不移植到 MCP。
-- 配置解析增加 POSIX 分支；Windows 已验证，Linux 真实回放待验。MCP 强制显式持久状态根，DSH 原默认保持。DSH tools 改为 optional peer，纯 MCP 安装无需宿主 alpha 依赖。
+- 配置解析增加 POSIX 分支；Windows 与 Ubuntu 真实回放均已验证，保留 POSIX venv 的符号链接启动路径。MCP 强制显式持久状态根，DSH 原默认保持。DSH tools 改为 optional peer，纯 MCP 安装无需宿主 alpha 依赖。
 - 增加整套 LF 审阅契约，保留原契约；回执纳入新入口、共享目录和契约选择代码。升级后的旧回执保持历史裁决，当前复用需重新核验。
 - 增加只读留存预演 CLI；默认无限保留，无自动清理与删除入口。补充四语 README、MCP 配置及验收口径。
 - 增加协议／平台／依赖检查和 Ubuntu 真实回放 CI 定义；远端 CI 与实际宿主验收以独立记录为准，不以自写客户端或注册成功替代。
-- 内核无新增评测模型调用；本轮验收未发起模型对话。Claude／Codex 实际工具调用仍待验，发布记录以 npm 和 GitHub Release 为准。
+- 内核无新增评测模型调用；本轮验收未发起模型对话。正式 npm 包在 Claude／Codex 隔离控制接口各完成 10 次真实工具调用。Claude 的错误路径只返回文本，完整结构化交付未通过；不宣称三宿主四例全部字段一致。发布记录见 npm 和 GitHub Release。
 
 ## 0.3.2 — 2026-10-17
 

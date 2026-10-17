@@ -99,7 +99,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 여러 호스트용 MCP(0.4.0)
 
-이 버전은 Claude Code／Codex용 stdio MCP 설정을 제공합니다. Claude는 격리 환경에서 등록과 연결, Codex는 등록과 설정 재확인까지 완료했으며 두 호스트의 실제 도구 호출은 검증 대기입니다. Windows는 검증했으며 Linux 실리플레이는 검증 대기입니다. 절대 Node 경로로 소스 `mcp.js`를 실행합니다. 설정과 격리 환경 예시는 [MCP 연결 안내](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)를 보십시오. DSH SDK를 불러오지 않습니다. 첫 MCP 버전은 `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, `veriscope_gate_list` 네 도구만 제공하며 네이티브 카드는 없습니다. batch／export와 bind／complete는 DSH 전용입니다. 세션 바인딩은 이식하지 않으며 MCP 보고서의 `execution.session_id`는 `null`입니다.
+격리된 Claude Code／Codex 호스트 제어 인터페이스에서 실제 도구 호출을 검증했으며 모델 대화는 하지 않았습니다. Windows와 Ubuntu의 실제 리플레이도 통과했습니다. Claude 제어 API의 오류 경로는 텍스트만 반환하므로 완전한 구조화 오류 전달은 미검증입니다. 절대 Node 경로로 소스 `mcp.js`를 실행합니다. 설정과 격리 환경 예시는 [MCP 연결 안내](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)를 보십시오. DSH SDK를 불러오지 않습니다. 첫 MCP 버전은 `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, `veriscope_gate_list` 네 도구만 제공하며 네이티브 카드는 없습니다. batch／export와 bind／complete는 DSH 전용입니다. 세션 바인딩은 이식하지 않으며 MCP 보고서의 `execution.session_id`는 `null`입니다.
 
 MCP 네 도구 모두 유효한 `VERISCOPE_STATE_DIR`의 명시 설정이 필수입니다. 없으면 재확인 필요를 반환하고 패키지 디렉터리로 대체하지 않습니다. doctor는 임시 프로브를 쓰고 지우며 replay는 보고서와 영수증을 쓰므로 두 도구는 읽기 전용이 아닙니다. status／list는 읽기 전용입니다. 업무 판정 FAIL은 도구 실행 오류와 다릅니다. 실제 호스트 도구 호출, Linux 실리플레이, 이 버전의 검증 상태는 [검증 기록](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json)에 구분하여 남깁니다. 등록 성공이나 자체 클라이언트의 성공만으로 호스트 검증을 대체할 수 없습니다.
 

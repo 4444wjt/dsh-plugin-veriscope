@@ -1,31 +1,52 @@
 {
   "schema_version": "McpAcceptanceV1",
   "version": "0.4.0",
-  "release_state": "release_prepared",
-  "recorded_at_utc": "2026-10-17T14:32:17.381901+00:00",
+  "release_state": "published",
+  "recorded_at_utc": "2026-10-17T14:58:23.517310+00:00",
   "baseline_commit": "07aa1a13fccfdb59cabaf7374fddccb727d10089",
-  "branch": "mcp-adapter",
+  "branch": "main",
   "scope": "单人本地、可跨宿主接入的归档门禁工具；不是企业全面就绪声明。",
-  "overall_status": "local_checks_passed_external_host_and_linux_acceptance_pending",
+  "overall_status": "published_runtime_checks_passed_Claude_error_structured_delivery_incomplete",
   "tests": {
     "status": "passed",
     "command": "node --test --test-reporter=spec",
     "platform": "win32",
     "node": "v24.21.0",
-    "total": 264,
+    "total": 266,
     "passed": 264,
     "failed": 0,
-    "skipped": 0,
+    "skipped": 2,
     "baseline_total": 202,
-    "added": 62,
+    "added": 64,
     "new_test_files": {
       "tests/tools.test.js": 8,
-      "tests/platform-contracts.test.js": 25,
+      "tests/platform-contracts.test.js": 27,
       "tests/mcp.test.js": 15,
       "tests/retention.test.js": 4,
       "tests/dsh-sdk.test.js": 10
     },
-    "note": "本机最终源码实跑；不据此替代 Ubuntu 远端 CI。"
+    "note": "Windows 本机 264 通过、2 个 POSIX 符号链接专项跳过；Ubuntu Node 22／24 实跑 266 全通过；CI 五个作业成功。",
+    "remote_ci": {
+      "status": "passed",
+      "url": "https://github.com/4444wjt/dsh-plugin-veriscope/actions/runs/39042098214",
+      "jobs": 5,
+      "matrix": [
+        "ubuntu/22",
+        "ubuntu/24",
+        "windows/22",
+        "windows/24"
+      ],
+      "ubuntu_tests": {
+        "total": 266,
+        "passed": 266,
+        "skipped": 0
+      },
+      "windows_tests": {
+        "total": 266,
+        "passed": 264,
+        "skipped": 2
+      }
+    }
   },
   "mcp": {
     "protocol_versions": [
@@ -109,16 +130,31 @@
       "bind_complete_paths": "passed",
       "status_card_asset_and_http_bridge": "passed",
       "card_visual_browser_review": "not_repeated_client_js_unchanged",
-      "new_model_calls": 0
+      "new_model_calls": 0,
+      "last_rechecked_at_utc": "2026-10-17T14:58:23.517310+00:00",
+      "release_commit": "330692dfe0365179ce6d35fe6eb54c39280083ca"
     },
     "claude_code": {
       "version": "2.1.278",
       "profile": "isolated",
       "registration": "passed",
       "connection": "passed",
-      "actual_tool_invocation": "pending",
-      "reason": "仅执行 MCP 配置管理与连接检查；零模型调用条件下未完成实际宿主工具调用。",
-      "last_registration_connection_recheck_utc": "2026-10-17T14:30:21.545839+00:00"
+      "actual_tool_invocation": "passed",
+      "last_registration_connection_recheck_utc": "2026-10-17T14:30:21.545839+00:00",
+      "runtime": "Claude Code CLI stream-json control mcp_call",
+      "tool_calls": 10,
+      "states": [
+        "PASS",
+        "FAIL",
+        "REVIEW",
+        "FAIL"
+      ],
+      "package_source": "downloaded npm 0.4.0 tarball, normally installed in clean consumer",
+      "evaluation_model_calls": 0,
+      "conversation_model_calls": 0,
+      "last_actual_invocation_utc": "2026-10-17T14:58:23.517310+00:00",
+      "review_error_structured_delivery": "not_passed_host_control_API_returns_error_text",
+      "review_error_observed": "REVIEW and INVALID_JSON/RECEIPT_UNAVAILABLE appear in actual host error text; persisted report checked separately"
     },
     "codex": {
       "version": "0.163.0",
@@ -126,48 +162,26 @@
       "registration": "passed",
       "configuration_readback": "passed",
       "tool_timeout_sec": 180,
-      "connection": "pending",
-      "actual_tool_invocation": "pending",
-      "reason": "配置管理命令只核对注册；未发起模型对话，不用自写客户端补作宿主验收。",
-      "last_configuration_recheck_utc": "2026-10-17T14:30:21.545839+00:00"
+      "connection": "passed",
+      "actual_tool_invocation": "passed",
+      "last_configuration_recheck_utc": "2026-10-17T14:30:21.545839+00:00",
+      "runtime": "Codex app-server mcpServer/tool/call",
+      "tool_calls": 10,
+      "states": [
+        "PASS",
+        "FAIL",
+        "REVIEW",
+        "FAIL"
+      ],
+      "package_source": "downloaded npm 0.4.0 tarball, normally installed in clean consumer",
+      "evaluation_model_calls": 0,
+      "conversation_model_calls": 0,
+      "last_actual_invocation_utc": "2026-10-17T14:58:23.517310+00:00",
+      "structured_response_cases": 4
     }
   },
   "cross_entry_comparison": {
-    "status": "passed",
-    "parties": [
-      "real_DSH_ToolRuntime",
-      "MCP_stdio_client_with_real_Python"
-    ],
-    "cases": [
-      {
-        "case": "boundary",
-        "identical": true,
-        "different_fields": [],
-        "mcp_status": "PASS",
-        "dsh_status": "PASS"
-      },
-      {
-        "case": "below-boundary",
-        "identical": true,
-        "different_fields": [],
-        "mcp_status": "FAIL",
-        "dsh_status": "FAIL"
-      },
-      {
-        "case": "broken",
-        "identical": true,
-        "different_fields": [],
-        "mcp_status": "REVIEW",
-        "dsh_status": "REVIEW"
-      },
-      {
-        "case": "historical-fail",
-        "identical": true,
-        "different_fields": [],
-        "mcp_status": "FAIL",
-        "dsh_status": "FAIL"
-      }
-    ],
+    "status": "partially_verified",
     "retained_fields": [
       "status",
       "gate_passed",
@@ -181,6 +195,125 @@
       "upstream_files",
       "errors"
     ],
+    "cases": [
+      {
+        "case": "boundary",
+        "states": [
+          "PASS",
+          "PASS",
+          "PASS"
+        ],
+        "different_fields": [],
+        "identical": true,
+        "claude_report_source": "host_structured_response"
+      },
+      {
+        "case": "below-boundary",
+        "states": [
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ],
+        "different_fields": [],
+        "identical": true,
+        "claude_report_source": "host_structured_response"
+      },
+      {
+        "case": "invalid-json",
+        "states": [
+          "REVIEW",
+          "REVIEW",
+          "REVIEW"
+        ],
+        "different_fields": [
+          "errors"
+        ],
+        "identical": false,
+        "claude_report_source": "persisted_report_plus_host_error_text"
+      },
+      {
+        "case": "archived-fail",
+        "states": [
+          "FAIL",
+          "FAIL",
+          "FAIL"
+        ],
+        "different_fields": [],
+        "identical": true,
+        "claude_report_source": "host_structured_response"
+      }
+    ],
+    "codex_structured_response_cases": 4,
+    "claude_structured_response_cases": 3,
+    "claude_error_review_artifact_cases": 1,
+    "all_three_hosts_structured_delivery_complete": false,
+    "limitation": "Claude control API converts tool isError to text; persisted REVIEW report lacks transient RECEIPT_UNAVAILABLE present in host error text and DSH/Codex response. No field is filled or discarded to force equality.",
+    "evaluation_model_calls": 0,
+    "conversation_model_calls": 0,
+    "parties": [
+      "real_DSH_ToolRuntime",
+      "real_Claude_Code_control_runtime",
+      "real_Codex_app_server_runtime"
+    ],
+    "previous_implementation_comparison": {
+      "status": "passed",
+      "parties": [
+        "real_DSH_ToolRuntime",
+        "MCP_stdio_client_with_real_Python"
+      ],
+      "cases": [
+        {
+          "case": "boundary",
+          "identical": true,
+          "different_fields": [],
+          "mcp_status": "PASS",
+          "dsh_status": "PASS"
+        },
+        {
+          "case": "below-boundary",
+          "identical": true,
+          "different_fields": [],
+          "mcp_status": "FAIL",
+          "dsh_status": "FAIL"
+        },
+        {
+          "case": "broken",
+          "identical": true,
+          "different_fields": [],
+          "mcp_status": "REVIEW",
+          "dsh_status": "REVIEW"
+        },
+        {
+          "case": "historical-fail",
+          "identical": true,
+          "different_fields": [],
+          "mcp_status": "FAIL",
+          "dsh_status": "FAIL"
+        }
+      ],
+      "retained_fields": [
+        "status",
+        "gate_passed",
+        "exit_code",
+        "thresholds",
+        "metrics",
+        "archived_gate",
+        "judge_provenance",
+        "evidence",
+        "input_sha256",
+        "upstream_files",
+        "errors"
+      ],
+      "allowed_differences": [
+        "run_id",
+        "time",
+        "session identity",
+        "artifact paths",
+        "host environment description"
+      ],
+      "three_host_conclusion": "pending_actual_Claude_and_Codex_tool_invocation",
+      "scope": "Historical implementation comparison with custom stdio client; retained as recorded evidence."
+    },
     "allowed_differences": [
       "run_id",
       "time",
@@ -188,15 +321,15 @@
       "artifact paths",
       "host environment description"
     ],
-    "three_host_conclusion": "pending_actual_Claude_and_Codex_tool_invocation"
+    "three_host_conclusion": "Four gate judgments agree. Three cases match all 11 retained fields through host structured responses. Invalid JSON remains unverified for complete Claude structured delivery; errors differ in the persisted fallback report."
   },
   "packaging": {
     "status": "passed",
-    "method": "actual npm pack plus normal offline clean-consumer npm install; no omit-peer or legacy-peer-deps",
+    "method": "download public npm 0.4.0 tarball; verify SHA1/SHA256; normal clean-consumer npm install --ignore-scripts without peer bypass; actual npm exec handshake/ping and genuine host calls",
     "files": 38,
-    "compressed_bytes": 85209,
-    "unpacked_bytes": 262368,
-    "tarball_sha256": "a053c12a1506024d6ec896d4875332855c11960e200f249955041811c394dab3",
+    "compressed_bytes": 85246,
+    "unpacked_bytes": 262693,
+    "tarball_sha256": "5756b94dee50f44d9b84c7d3139ce1b08015f9f636b288aae24222f22e77e35a",
     "installed_files_match_source": true,
     "dsh_packages_installed": false,
     "optional_unmet_peer_metadata": "present_not_installed_packages",
@@ -208,19 +341,24 @@
       "REVIEW"
     ],
     "four_readmes_present": true,
-    "documentation_links": "GitHub absolute URLs; documentation must be merged to its target ref before release"
+    "documentation_links": "Four README files present; README/doc links use public GitHub main URLs, verified after PR merge",
+    "published_registry_version": "0.4.0",
+    "published_bin_verified": true,
+    "published_sdk_missing_diagnostic": "passed"
   },
   "platforms": {
     "windows_real_runtime": "passed",
     "posix_config_unit_paths": "passed",
     "ubuntu_real_python_ci": {
-      "status": "pending",
+      "status": "passed",
       "workflow_defined": true,
-      "remote_job_run": false,
+      "remote_job_run": true,
       "upstream_commit": "1b89bcabb83e1b123039799516596fdcfd393d42",
       "python": "3.11.9",
       "pandas": "3.0.6",
-      "reason": "本轮未获推送授权，远端作业没有运行；Windows 上 LF 回放不代替 Linux 验收。"
+      "reason": "First real Ubuntu attempt failed due to venv symlink resolution; fixed in PR #2 and reverified. macOS runtime is not verified.",
+      "workflow_url": "https://github.com/4444wjt/dsh-plugin-veriscope/actions/runs/39042098214",
+      "artifact_verified": "real Python PASS/FAIL/REVIEW; fixed upstream commit, Python 3.11.9, pandas 3.0.6"
     }
   },
   "retention": {
@@ -251,13 +389,13 @@
     },
     {
       "item": "跨平台运行",
-      "status": "pending_linux_runtime",
-      "evidence": "POSIX 解析和 LF 契约已实现；Linux 真实回放待远端 CI。"
+      "status": "windows_ubuntu_verified_macos_unverified",
+      "evidence": "Windows 实机与 Ubuntu 远端真实 Python 三态均通过；POSIX venv 符号链接回归已在 Ubuntu 实跑。"
     },
     {
       "item": "Claude／Codex 宿主能力",
-      "status": "pending_actual_tool_invocation",
-      "evidence": "隔离注册通过；Claude 连接通过，实际工具调用待验。"
+      "status": "actual_invocation_verified_with_error_transport_limit",
+      "evidence": "正式 npm 包在两家隔离宿主各 10 次真实控制接口调用；无模型对话。Claude 的错误路径只传回文本，结构化错误交付未通过，不宣称四例全部字段一致。"
     },
     {
       "item": "生命周期管理",
@@ -278,15 +416,30 @@
     "default_dsh_profile_files_unchanged": true,
     "default_claude_codex_configs_unchanged": true,
     "authentication_copied": false,
-    "plugin_head_unchanged": true,
-    "staged_changes": false,
     "model_calls": {
       "evaluation": 0,
       "conversation": 0
     },
-    "git_actions": "only_local_branch_creation; no staging commit push tag or release",
-    "npm_published": false,
-    "verification_scope": "Implementation acceptance before publication; its Git-state assertions describe that recorded phase only."
+    "git_actions": "User-authorized plugin-only commits, pushes, PR merges, v0.4.0 tag and GitHub Release. Protected upstream not modified.",
+    "npm_published": true,
+    "implementation_phase_record": {
+      "status": "passed",
+      "upstream_files_checked": 14,
+      "upstream_git_head_status_refs_unchanged": true,
+      "original_contract_and_client_js_unchanged": true,
+      "default_dsh_profile_files_unchanged": true,
+      "default_claude_codex_configs_unchanged": true,
+      "authentication_copied": false,
+      "plugin_head_unchanged": true,
+      "staged_changes": false,
+      "model_calls": {
+        "evaluation": 0,
+        "conversation": 0
+      },
+      "git_actions": "only_local_branch_creation; no staging commit push tag or release",
+      "npm_published": false,
+      "verification_scope": "Implementation acceptance before publication; its Git-state assertions describe that recorded phase only."
+    }
   },
   "resolved_failures": [
     {
@@ -298,13 +451,22 @@
       "item": "隔离验收脚本 Fetch bad port",
       "resolution": "验收端口由 4190 改为 4191；卡片资源与状态桥重新实测通过，产品代码无此问题。",
       "initial_failure_records_retained": true
+    },
+    {
+      "item": "首轮 Ubuntu 单测使用写死的 PowerShell 修复建议断言",
+      "resolution": "按平台断言 shell 提示，Ubuntu/Windows CI 均通过。",
+      "initial_failure_url": "https://github.com/4444wjt/dsh-plugin-veriscope/actions/runs/39041838824"
+    },
+    {
+      "item": "首轮 Ubuntu 真实回放解析 venv 符号链接后执行全局 Python，无法导入 pandas",
+      "resolution": "保留 venv 启动路径，继续校验解释器真实二进制；显式配置与自动探测两条回归及真实回放通过。",
+      "fix_pr": "https://github.com/4444wjt/dsh-plugin-veriscope/pull/2",
+      "initial_failure_url": "https://github.com/4444wjt/dsh-plugin-veriscope/actions/runs/39041824399"
     }
   ],
   "pending": [
-    "Ubuntu 远端单元测试矩阵及真实 Python 作业",
-    "Claude Code 实际工具调用",
-    "Codex 连接及实际工具调用",
-    "三家真实宿主同档逐字段对照"
+    "Claude Code 2.1.278 控制接口对 tool isError 的完整结构化交付；三宿主四例全部字段一致未通过",
+    "macOS 真实运行未验；模型自动选择工具与对话端到端使用未测（本轮禁止模型调用）"
   ],
   "evidence": {
     "raw_records_location": "local verification output, excluded from public package; no raw archive text or credentials copied here",
@@ -356,6 +518,54 @@
       {
         "name": "sdk-hardening/runtime-coverage.json",
         "sha256": "8751f0d9ada29d59bc51fc4583a6f710b1481d97ab5eba7901384d734aeb73fb"
+      },
+      {
+        "name": "release-040/main-ci-jobs.json",
+        "sha256": "4a15d0eea072fc1ea903e6950342c998ae36f75bfa4a724af862a1b01d81bff1"
+      },
+      {
+        "name": "release-040/publish-workflow.txt",
+        "sha256": "8c54b8a4aa032c58bdfdfbea5627da7636cd54531890e3a1e11030b0daca41be"
+      },
+      {
+        "name": "release-040/ubuntu-real-python.json",
+        "sha256": "3b3add710b4125ae4e0649e37fc7cddebd0ced8156db843127274d5239ab612e"
+      },
+      {
+        "name": "release-040/published-pack.json",
+        "sha256": "779951917f81b6631d6117cc71e7ff02c391c826cc9862a3209c99bcb8afa2dc"
+      },
+      {
+        "name": "release-040/published-install.txt",
+        "sha256": "c96b6ad074a45f71ba92745456b3ecd8a6e6263ac4b04adbacae78589d65e99e"
+      },
+      {
+        "name": "release-040/published-bin.json",
+        "sha256": "c36592628ceab0ef3bd4fa83fa9b5d61a9b976c46dfac7979a333fd52570ffd4"
+      },
+      {
+        "name": "release-040/published-sdk-diagnostic.json",
+        "sha256": "e8b40d7270721446fcc6d40cb4c6a238ae73ba270ed683648db74722e908846d"
+      },
+      {
+        "name": "release-040/three-host-comparison.json",
+        "sha256": "c4ad2ca8d43f42942b22b4d4721667407b92968701fc1412d4d081e0ce6465a6"
+      },
+      {
+        "name": "release-040/isolation-after-publication.json",
+        "sha256": "0c3491caea8720b7d963e6e46c49cbf80ab8ad588773e292fba62ed713eb2177"
+      },
+      {
+        "name": "release-040/codex-published/acceptance.json",
+        "sha256": "93c1a6cd5f052939d73b1f1383b0b2faec164dc80206000900115e7560ae42ab"
+      },
+      {
+        "name": "release-040/claude-published/acceptance.json",
+        "sha256": "d3ebb84b36829931feb48fc98fc3ea7b4aff868e32f0821eb030dc67792c7ed4"
+      },
+      {
+        "name": "release-040/dsh-release/host-acceptance-1792248753378.json",
+        "sha256": "7d0b0e76cbe733c13c7cdc54e9a0597d3dc99ff7e81f9aafcf638de145c1c933"
       }
     ]
   },
@@ -403,10 +613,23 @@
     "git_and_publication_state_unchanged_at_revision_acceptance": true
   },
   "publication": {
-    "status": "prepared",
+    "status": "published_and_download_verified",
     "target_version": "0.4.0",
     "prepared_at_utc": "2026-10-17T14:38:29.342935+00:00",
     "authorization": "User approved branch push, PR, release, and subsequent acceptance updates",
-    "ci_and_host_acceptance": "tracked separately; unfinished items remain pending"
-  }
+    "ci_and_host_acceptance": "Real host invocations and Ubuntu verified; Claude structured error transport remains explicitly incomplete",
+    "published_version": "0.4.0",
+    "release_commit": "330692dfe0365179ce6d35fe6eb54c39280083ca",
+    "github_pr": "https://github.com/4444wjt/dsh-plugin-veriscope/pull/1",
+    "fix_pr": "https://github.com/4444wjt/dsh-plugin-veriscope/pull/2",
+    "github_release": "https://github.com/4444wjt/dsh-plugin-veriscope/releases/tag/v0.4.0",
+    "npm": "https://www.npmjs.com/package/dsh-plugin-veriscope/v/0.4.0",
+    "npm_dist_tag": "latest",
+    "oidc_workflow": "https://github.com/4444wjt/dsh-plugin-veriscope/actions/runs/39042121734",
+    "tarball_sha256": "5756b94dee50f44d9b84c7d3139ce1b08015f9f636b288aae24222f22e77e35a",
+    "post_release_evidence_update": true,
+    "failed_unpublished_tag_replaced_once": true,
+    "tag_replacement_note": "Initial tag had no npm version or GitHub Release; failed run/commit retained. After POSIX fix passed CI, tag updated with an exact old-ref lease before successful publication. Published tag/package not modified afterward."
+  },
+  "release_commit": "330692dfe0365179ce6d35fe6eb54c39280083ca"
 }
