@@ -1,7 +1,6 @@
 {
   "name": "dsh-plugin-veriscope",
-  "version": "0.3.1",
-  "private": true,
+  "version": "0.3.2",
   "description": "Offline VeriScope Quality Gate replay for DeepSeek Harness (DSH).",
   "author": {
     "name": "4444wjt"
@@ -23,7 +22,8 @@
     "skills",
     "cordis.patch.yml",
     "scripts/replay.mjs",
-    "client.js"
+    "client.js",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "dsh": {
     "bundle": {
@@ -39,7 +39,7 @@
   "scripts": {
     "test": "node --test",
     "replay": "node scripts/replay.mjs",
-    "verify:replay": "node scripts/verify-replay.mjs"
+    "prepublishOnly": "node scripts/release-guard.mjs"
   },
   "keywords": [
     "deepseek-harness",
@@ -63,5 +63,8 @@
     ".": "./index.js",
     "./client": "./client.js",
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

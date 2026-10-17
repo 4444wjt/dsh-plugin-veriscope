@@ -38,23 +38,26 @@ Python 是唯一数值裁判；REVIEW 永不转为 PASS，已确认 FAIL 不被�
 
 ## 安装与配置
 
-包名安装命令（**尚未发布到 npm，当前不可用**）：
+npm 已有正式发布包。在已验证的 DSH CLI 中，需要显式指定 profile；以下使用独立的 `veriscope-demo`：
 
 ```powershell
-dsh plugin add dsh-plugin-veriscope
+# 安装
+dsh plugin --profile veriscope-demo add dsh-plugin-veriscope
+# 查看已安装版本
+dsh plugin --profile veriscope-demo list dsh-plugin-veriscope --depth 0
+# 卸载
+dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
 ```
 
-发布后可在独立 profile 安装，并用 `dsh plugin --profile veriscope-demo list` 查看已安装插件；卸载用 `dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope`。准确版本读取该 profile 下 `node_modules/dsh-plugin-veriscope/package.json` 的 `version`。
-
-未发布版本或二次开发可走**本地目录安装**，与 npm 包名安装分开：
+二次开发可走**本地目录安装**，与 npm 包名安装分开：
 
 ```powershell
 dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 ```
 
-以上目录路径须替换为源码实际位置；不要将目录／link 安装结果当成 registry 安装证明。**安装成功不等于门禁通过**，首次使用仍需配置 `VERISCOPE_ROOT` 与 `VERISCOPE_PYTHON` 并运行体检。npm 包不含测试与 `docs`；`npm test`／`verify:replay` 仅供源码开发，完整文档请查看仓库。
+以上目录路径须替换为源码实际位置；不要将目录／link 安装结果当成 registry 安装证明。**安装成功不等于门禁通过**，首次使用仍需配置 `VERISCOPE_ROOT` 与 `VERISCOPE_PYTHON` 并运行体检。npm 包不含测试与 `docs`；`npm test` 仅供源码开发；`node scripts/verify-replay.mjs` 也仅在完整源码仓库及其验证材料就绪时可用，不属于安装包能力。完整文档请查看仓库。
 
-已验证：Windows、DSH NEXT 2.0.18-next，内部 DSH／tools／skill **0.2.1-alpha.2**。Node ≥22.19；其他宿主版本未验证。另需兼容上游及 Python／pandas，固定依赖见 [上游说明](docs/UPSTREAM.md)。插件不附送完整上游或业务归档。
+已验证：Windows、DSH NEXT 2.0.18-next，内部 DSH／tools／skill **0.2.1-alpha.2**。Node ≥22.19；其他宿主版本未验证。另需兼容上游及 Python／pandas，固定依赖见 [上游说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)。插件不附送完整上游或业务归档。
 
 **没有 settings UI，不自动读取 `.env`。**路径只读宿主进程环境变量；cordis patch 只接受 `completionMode`。宿主自己的环境加载策略由宿主决定。
 
@@ -99,7 +102,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 阈值默认0.8，须为0–1有限数值，不为获得 PASS 自动调低。归档相对路径以 `VERISCOPE_ROOT` 为基准。`baseline_run_id` 省略保持原基线，`null` 要求无基线，UUID 引用当前状态根中的有效回执。`task_id` 为1–80位字母、数字、下划线、点或连字符；会话标识不接受工具参数伪造。绑定只在内存中，重启需重新绑定，磁盘完成记录不会恢复授权。
 
-“检查有效性”用 status；“重新执行门禁”用 replay。只有实际 replay 能生成回执。输入、基线、策略、上游、插件或环境变化时，旧回执进入待复核，历史失败仍保留。详见 [回执协议](docs/RECEIPTS.md)。
+“检查有效性”用 status；“重新执行门禁”用 replay。只有实际 replay 能生成回执。输入、基线、策略、上游、插件或环境变化时，旧回执进入待复核，历史失败仍保留。详见 [回执协议](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md)。
 
 新工具的输入与输出示例：
 
@@ -160,8 +163,8 @@ node scripts/replay.mjs --result 'D:\your-data\evaluation.json' --json
 dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
 ```
 
-单元测试使用构造归档和协议桩，不需要模型或 Python。真实 Python 与宿主验收另见 [验证说明](docs/verification.md)。卸载移除注册，保留用户状态与历史证据。`private: true` 阻止误发 npm，不影响源码公开。
+单元测试使用构造归档和协议桩，不需要模型或 Python。真实 Python 与宿主验收另见 [验证说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md)。卸载移除注册，保留用户状态与历史证据。源码发布须显式设置 `VERISCOPE_RELEASE=1`，并通过版本／tag 守卫；详见贡献指南。
 
-[贡献指南](CONTRIBUTING.md) · [治理规则](GOVERNANCE.md) · [更新记录](CHANGELOG.md) · [路线图](ROADMAP.md) · [安全报告](SECURITY.md) · [发布检查](docs/RELEASE_CHECKLIST.md)。市场 PR 未合并前不称已收录。
+[贡献指南](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/CONTRIBUTING.md) · [治理规则](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/GOVERNANCE.md) · [更新记录](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/CHANGELOG.md) · [路线图](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/ROADMAP.md) · [安全报告](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/SECURITY.md) · [发布检查](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RELEASE_CHECKLIST.md)。市场 PR 未合并前不称已收录。
 
-MIT，保留脚手架原版权；来源见 [第三方说明](THIRD_PARTY_NOTICES.md) 和 [来源哈希](docs/provenance.json)。上游单独分发，须遵守自身许可。
+MIT，保留脚手架原版权；来源见 [第三方说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/THIRD_PARTY_NOTICES.md) 和 [来源哈希](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/provenance.json)。上游单独分发，须遵守自身许可。

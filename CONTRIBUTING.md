@@ -21,6 +21,14 @@
 5. 声明第三方来源、许可和 AI 辅助范围；AI 生成内容不能冒充真人审阅、实际运行或社区反馈。
 6. 更新涉及行为的文档和 CHANGELOG 的 Unreleased 部分。维护者审核后合并，不承诺固定响应时限。
 
+## 发布守卫
+
+正式发布从完整 Git 源码仓库执行，必须显式设置 `VERISCOPE_RELEASE=1`；未设置或值不等于 `1` 时，`prepublishOnly` 拦截本地误发。守卫位于 `scripts/release-guard.mjs`，仅供源码发布流程使用，不随运行包分发，也不支持从安装目录再次发布。
+
+存在精确 tag 时，必须为 `v<package.json 版本>`，不一致即拒绝。无精确 tag 时，在显式授权后警告并放行，方便在创建发布 tag 前验包；本地守卫不强制 tag 存在；正式 CI 仍强制要求 tag 与版本一致，分支上的手动触发会拒绝。守卫是防误操作措施，不能替代 npm 发布权限控制。
+
+GitHub 发布工作流为 `.github/workflows/release.yml`，通过 OIDC 获取短期身份，不使用长期发布凭据。npm 的 Trusted Publisher 须填用户 `4444wjt`、仓库 `dsh-plugin-veriscope`、workflow 文件名 `release.yml`，环境名留空，并允许直接 `npm publish`；若只允许 `npm stage publish`，须先将工作流发布命令改为 `npm stage publish`，不能声称已直接发布。配置尚需一次成功的线上发布验证，保存配置本身不代表链路已通过。
+
 ## 许可
 
 贡献者需有权提交相关内容，并同意以本项目 MIT 许可贡献；保留第三方版权和必要 NOTICE。不要求未实际签署的 CLA，也不伪称已有 CLA／DCO 流程。

@@ -49,7 +49,7 @@ test('diagnosed input failure cannot become a shareable PASS or a usable receipt
 test('new receipts bind the changes module and record local version without changing old JSON export', async t => {
   const f = await receiptFixture(t)
   const original = fs.readFileSync(f.receipt), receipt = JSON.parse(original)
-  assert.equal(receipt.payload.scope.plugin.version, '0.3.1')
+  assert.equal(receipt.payload.scope.plugin.version, JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version)
   assert.match(receipt.payload.scope.plugin.files['lib/changes.js'], /^[a-f0-9]{64}$/)
   const result = await createExportService(f.options).export({ run_id: f.report.run_id, format: 'json' })
   assert.equal(result.exported, true); assert.deepEqual(fs.readFileSync(result.path), original)

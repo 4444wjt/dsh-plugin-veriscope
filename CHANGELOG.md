@@ -1,5 +1,16 @@
 # 更新记录
 
+## 0.3.2 — 2026-10-17
+
+- README 修正 npm 发布状态，补齐按独立 profile 安装、卸载和查看已安装版本的命令。
+- README 仓库文件链接改为 GitHub 绝对链接，避免 npm 页面引用未打包文档。
+- 发布包加入 `THIRD_PARTY_NOTICES.md`，保留原 LICENSE。
+- 移除只对源码有效的 `verify:replay` 脚本项；README 保留源码专用命令。
+- 移除 `private` 字段，改用公开 `publishConfig` 与需显式授权、核对 tag 的 `prepublishOnly` 源码发布守卫。
+- 新增 tag 触发的 OIDC 发布工作流；尚需配置 npm Trusted Publisher 并实际发布验证。
+- 经单独授权，将回执版本测试的固定旧版本断言改为读取当前 package.json 版本。
+- 本轮不改变任何运行时行为；0.3.1 历史验收记录保持原样。
+
 ## 0.3.1 — 2026-10-17
 
 - 报告导出新增 `format: "share"` 白名单求助摘要：本地预览，不透传路径、原文、日志、模型标签或未知字段；摘要不是回执，不能用于任务放行。
