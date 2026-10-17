@@ -120,7 +120,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 ## 여러 호스트용 MCP
 
-0.5.0에서 check를 추가하여 MCP는 다섯 도구를 제공합니다. 현재 후보의 Windows 호스트 실호출과 미검증 범위는 `docs/acceptance-b2-v0.5.0.json`에 기록합니다. 이번에는 Ubuntu를 실행하지 않았습니다. 다음은 0.4.0의 과거 검증입니다.
+0.5.0에서 check를 추가하여 MCP는 다섯 도구를 제공합니다. Windows 호스트 실호출과 Ubuntu 원격 CI(고정 업스트림 실제 리플레이 포함)는 통과했습니다. 남은 미검증 범위는 `docs/acceptance-b2-v0.5.0.json`에 기록합니다. 다음은 0.4.0의 과거 검증입니다.
 
 0.4.0에서는 격리된 Claude Code／Codex 호스트 제어 인터페이스에서 실제 도구 호출을 검증했으며 모델 대화는 하지 않았습니다. Windows와 Ubuntu의 실제 리플레이도 통과했습니다. Claude 제어 API의 오류 경로는 텍스트만 반환하므로 완전한 구조화 오류 전달은 미검증입니다. 절대 Node 경로로 소스 `mcp.js`를 실행합니다. 설정과 격리 환경 예시는 [MCP 연결 안내](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)를 보십시오. DSH SDK를 불러오지 않습니다. 첫 MCP 버전은 `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, `veriscope_gate_list` 네 도구만 제공하며 네이티브 카드는 없습니다. batch／export와 bind／complete는 DSH 전용입니다. 세션 바인딩은 이식하지 않으며 MCP 보고서의 `execution.session_id`는 `null`입니다.
 
