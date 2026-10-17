@@ -24,3 +24,39 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: node --test
+
+  real-python:
+    name: Ubuntu / 固定上游真实回放
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: 4444wjt/RAG_Evaluation_Demo
+          ref: 1b89bcabb83e1b123039799516596fdcfd393d42
+          path: .local/ci-upstream
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.9'
+      - name: 准备独立 Python
+        run: |
+          python -m venv .local/ci-venv
+          .local/ci-venv/bin/python -m pip install pandas==3.0.6
+      - name: 真实 Python 与 MCP 三态
+        run: node scripts/verify-mcp.mjs
+        env:
+          VERISCOPE_ROOT: ${{ github.workspace }}/.local/ci-upstream
+          VERISCOPE_PYTHON: ${{ github.workspace }}/.local/ci-venv/bin/python
+          VERISCOPE_STATE_DIR: ${{ github.workspace }}/.local/ci-state
+          PYTHONDONTWRITEBYTECODE: '1'
+          PYTHON_DOTENV_DISABLED: '1'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ubuntu-mcp-real-python
+          path: .local/ci-state/verification/

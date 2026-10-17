@@ -2,6 +2,8 @@
 
 **中文** · [English](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.en.md) · [日本語](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ja.md) · [한국어](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ko.md)
 
+> **0.4.0 升级提示**：旧回执的当前有效性将进入 REVIEW，历史 PASS／FAIL 不会改写。升级前请备份完整状态目录及原归档，并使用插件外的持久状态目录；包内 `.local` 可能随重装丢失，单独导出回执不是完整备份。重新 replay 后取得新版本回执。
+
 把已有的 VeriScope 评测 JSON 接入 DSH，调用 VeriScope 原有的 Python Quality Gate，返回**通过／失败／待复核**、当前回执有效性与来源。
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手动镜像](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · 完整 VeriScope：[主仓库](https://github.com/4444wjt/RAG_Evaluation_Demo)／[镜像](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue 和 PR 请提交到 GitHub。
@@ -40,7 +42,7 @@ Python 是唯一数值裁判；REVIEW 永不转为 PASS，已确认 FAIL 不被�
 
 ## 安装与配置
 
-npm 已有正式发布包。在已验证的 DSH CLI 中，需要显式指定 profile；以下使用独立的 `veriscope-demo`：
+本文对应 **0.4.0**，提供 DSH 插件和独立的 `veriscope-mcp` 入口。npm 可用版本以[包页面](https://www.npmjs.com/package/dsh-plugin-veriscope)为准；MCP 配置与待验范围见下文。在已验证的 DSH CLI 中，需显式指定 profile；以下使用独立的 `veriscope-demo`：
 
 ```powershell
 # 安装
@@ -59,7 +61,9 @@ dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 
 以上目录路径须替换为源码实际位置；不要将目录／link 安装结果当成 registry 安装证明。**安装成功不等于门禁通过**，首次使用仍需配置 `VERISCOPE_ROOT` 与 `VERISCOPE_PYTHON` 并运行体检。npm 包不含测试与 `docs`；`npm test` 仅供源码开发；`node scripts/verify-replay.mjs` 也仅在完整源码仓库及其验证材料就绪时可用，不属于安装包能力。完整文档请查看仓库。
 
-已验证：Windows、DSH NEXT 2.0.18-next，内部 DSH／tools／skill **0.2.1-alpha.2**。Node ≥22.19；其他宿主版本未验证。另需兼容上游及 Python／pandas，固定依赖见 [上游说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)。插件不附送完整上游或业务归档。
+0.3.x 历史已验证：Windows、DSH NEXT 2.0.18-next，内部 DSH／tools／skill **0.2.1-alpha.2**。Node ≥22.19；其他宿主版本未验证。另需兼容上游及 Python／pandas，固定依赖见 [上游说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)。插件不附送完整上游或业务归档。
+
+DSH 入口要求 `@deepseek-ai/dsh-tools` 为 `0.2.1-alpha.2`，加载前核对版本，加载后检查 `defineTool`。缺失、不兼容、加载失败分别报 `SDK_MISSING`、`SDK_INCOMPATIBLE`、`SDK_LOAD_FAILED`，不会自动安装或切换版本；这些检查不代替宿主验收。MCP 不加载 DSH SDK。
 
 ### 配置项
 
@@ -67,9 +71,9 @@ dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 
 | 配置 | 入口 | 默认值与要求 |
 |---|---|---|
-| `veriscopeRoot` | `VERISCOPE_ROOT` | `D:\RAG_Evaluation_Demo`；其他机器请显式设置 |
-| `pythonPath` | `VERISCOPE_PYTHON` | 依次探测上游 `.venv`／`venv`，不回退 PATH |
-| 状态根 | `VERISCOPE_STATE_DIR` | `<插件目录>/.local`；显式值优先，可用于只读安装目录 |
+| `veriscopeRoot` | `VERISCOPE_ROOT` | Windows 默认 `D:\RAG_Evaluation_Demo`；POSIX 必须显式设置 |
+| `pythonPath` | `VERISCOPE_PYTHON` | 依次探测 `.venv`／`venv`：Windows 为 `Scripts/python.exe`，POSIX 为 `bin/python`；不回退 PATH |
+| 状态根 | `VERISCOPE_STATE_DIR` | DSH 默认 `<插件目录>/.local`，建议显式持久目录；MCP 必须显式设置 |
 | 提醒模式 | cordis patch `completionMode` | `off`；只允许 `off` 或 `remind`，非法值报错 |
 
 三个环境变量的显式值须为非空绝对路径，无效值不静默回退。在**启动 DSH 的同一终端**设置后启动或完全重启宿主：
@@ -92,6 +96,12 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 
 `off` 关闭停止事件提醒，全部工具仍可使用。`remind` 只提醒未完成的绑定任务，不承诺普通聊天全局阻断。路径不能写入这个 config。
 
+## 跨宿主 MCP（0.4.0）
+
+本版本提供 Claude Code／Codex 的 stdio MCP 配置：Claude 已完成隔离注册与连接，Codex 已完成隔离注册与配置回读；两者实际工具调用均待验。Windows 已验证，Linux 真实回放待验。使用绝对 Node 路径启动源码 `mcp.js`，配置及独立环境示例见 [MCP 接入说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)。无需加载 DSH SDK。首版只有 `veriscope_doctor`、`veriscope_gate_replay`、`veriscope_gate_status`、`veriscope_gate_list` 四工具，无原生卡片。batch／export 及 bind／complete 仍只在 DSH；会话绑定不会移植，MCP 报告的 `execution.session_id` 为 `null`。
+
+MCP 四工具都要求显式、合法的 `VERISCOPE_STATE_DIR`；未设置时返回待复核，不回退包目录。doctor 会写入并清理临时探针，replay 会写报告和回执，二者不是只读；status／list 为只读。业务 FAIL 不等于工具执行错误。宿主工具调用、Linux 真实回放及本版本验收状态以 [验收记录](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json) 为准；注册成功或自写客户端通过不能替代宿主验收。
+
 ## 八个工具
 
 | 工具 | 用途 |
@@ -113,6 +123,8 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 - `task_id` 为 1–80 位字母、数字、下划线、点或连字符；会话标识不接受工具参数伪造。绑定只在内存中，重启需重新绑定，磁盘完成记录不会恢复授权。
 
 “检查有效性”用 status；“重新执行门禁”用 replay。只有实际 replay 能生成回执。输入、基线、策略、上游、插件或环境变化时，旧回执进入待复核，历史失败仍保留。详见 [回执协议](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md)。
+
+0.4.0 接受原契约及固定公开提交 `1b89bcabb83e1b123039799516596fdcfd393d42` 审阅得到的 LF 契约，只接受其中一整套原字节匹配，不逐文件拼接，也不在运行时归一化。MCP 入口、共享工具目录及契约选择代码纳入回执哈希；升级后旧回执的当前有效性进入 REVIEW，历史记录不变。
 
 ### 输入与输出示例
 
@@ -143,7 +155,7 @@ JSON 拒绝时，`execution.errors[].diagnostic` 提供可确认的发现点：�
 
 status 的 `changes` 只解释原回执与本次捕获的固定绑定字段，最多显示 20 项并标明截断。`COMPLETE` 仅指所列范围已核对，未变化也不代表事实正确；`UNVERIFIED` 表示部分或全部未核实，已确认变化仍可列出。契约校验失败沿用原拒绝路径，其余未核实，不绕过检查补造对照，也不据此归因分数变化。
 
-## 原生结果卡
+## 原生结果卡（DSH）
 
 支持 `tool.call.toolview` 的宿主显示一张深色金色中文结果卡：当前三态、下一步、“重新检查”和折叠依据。按钮只读查状态，不能重放或登记完成。没有卡片接口时保留中文工具文本。
 
@@ -169,6 +181,8 @@ replay 确认 FAIL 后即使回执写入失败，核心 FAIL 仍保留；后续 
 
 记录在 `<状态根>/runs/<run_id>/`，包含 `report.json`、stdout、stderr，以及符合生成条件的 `receipt.json`；完成登记另存 `completions/`。追加记录不覆盖失败。日志可能含归档片段与本地路径，分享前脱敏；插件不上传归档或打印完整环境。
 
+所有记录默认无限期保留，没有自动清理。设置显式 `VERISCOPE_STATE_DIR` 后，`node scripts/prune.mjs --dry-run --json` 仅只读预演文件清单、逻辑字节数和已记录的关联，不验证关联正确性，也不提供删除入口。卸载或重装前请将状态根放在插件目录之外。
+
 输入限 10MiB，stdout／stderr 各 2MiB，重放 120 秒，环境探测每次 10 秒。status 会读取并哈希文件、启动 Python 查版本及 pandas 元数据，不运行评测模型或门禁脚本。哈希不证明语义正确，不抵御能重写整个状态根的用户；检查后的变化需再次检查发现。
 
 历史 Trace 仅核对逐字出处，标 `historical_ai`，不是新语义核查。内核零新增评测模型调用，宿主对话仍可能产生 token 费用；不宣称算法首创或端到端降本。
@@ -181,7 +195,7 @@ node scripts/replay.mjs --result 'D:\your-data\evaluation.json' --json
 dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
 ```
 
-单元测试使用构造归档和协议桩，不需要模型或 Python。真实 Python 与宿主验收另见 [验证说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md)。卸载移除注册，保留用户状态与历史证据。源码发布须显式设置 `VERISCOPE_RELEASE=1`，并通过版本／tag 守卫；详见贡献指南。
+单元测试使用构造归档和协议桩，不需要模型或 Python。真实 Python 与宿主验收另见 [验证说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md)。卸载移除注册；插件不会主动删除外置状态根，但包目录内的默认状态可能随移除或重装丢失，请先备份。源码发布须显式设置 `VERISCOPE_RELEASE=1`，并通过版本／tag 守卫；详见贡献指南。
 
 ## 贡献与许可
 

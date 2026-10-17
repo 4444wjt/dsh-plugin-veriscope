@@ -1,0 +1,412 @@
+{
+  "schema_version": "McpAcceptanceV1",
+  "version": "0.4.0",
+  "release_state": "release_prepared",
+  "recorded_at_utc": "2026-10-17T14:32:17.381901+00:00",
+  "baseline_commit": "07aa1a13fccfdb59cabaf7374fddccb727d10089",
+  "branch": "mcp-adapter",
+  "scope": "单人本地、可跨宿主接入的归档门禁工具；不是企业全面就绪声明。",
+  "overall_status": "local_checks_passed_external_host_and_linux_acceptance_pending",
+  "tests": {
+    "status": "passed",
+    "command": "node --test --test-reporter=spec",
+    "platform": "win32",
+    "node": "v24.21.0",
+    "total": 264,
+    "passed": 264,
+    "failed": 0,
+    "skipped": 0,
+    "baseline_total": 202,
+    "added": 62,
+    "new_test_files": {
+      "tests/tools.test.js": 8,
+      "tests/platform-contracts.test.js": 25,
+      "tests/mcp.test.js": 15,
+      "tests/retention.test.js": 4,
+      "tests/dsh-sdk.test.js": 10
+    },
+    "note": "本机最终源码实跑；不据此替代 Ubuntu 远端 CI。"
+  },
+  "mcp": {
+    "protocol_versions": [
+      "2025-11-25",
+      "2025-06-18"
+    ],
+    "tools": [
+      "veriscope_doctor",
+      "veriscope_gate_replay",
+      "veriscope_gate_status",
+      "veriscope_gate_list"
+    ],
+    "protocol_and_failure_regressions": "passed",
+    "explicit_state_required_for_all_tools": true,
+    "session_id": null,
+    "runtime_dependencies_added": 0,
+    "real_python_stdio_client": {
+      "status": "passed",
+      "platform": "win32",
+      "cases": 4,
+      "states": [
+        "PASS",
+        "FAIL",
+        "REVIEW"
+      ],
+      "additional_historical_fail_preserved": true,
+      "is_host_acceptance": false
+    }
+  },
+  "contracts": {
+    "original_contract_file_unchanged": true,
+    "whole_profile_matching": "passed",
+    "mixed_profile_rejected": "passed",
+    "fixed_selection_within_replay": "passed",
+    "adapter_byte_changes_invalidate_receipt": "passed",
+    "legacy_receipt_historical_verdict_retained": "passed",
+    "old_receipt_current_validity": "REVIEW_after_scope_change",
+    "lf_source_commit": "1b89bcabb83e1b123039799516596fdcfd393d42",
+    "lf_source_url": "https://github.com/4444wjt/RAG_Evaluation_Demo/tree/1b89bcabb83e1b123039799516596fdcfd393d42",
+    "real_python": {
+      "original": {
+        "status": "passed",
+        "platform": "win32",
+        "states": [
+          "PASS",
+          "FAIL",
+          "REVIEW"
+        ]
+      },
+      "lf": {
+        "status": "passed",
+        "platform": "win32",
+        "cases": 3,
+        "states": [
+          "PASS",
+          "FAIL",
+          "REVIEW"
+        ],
+        "is_linux_acceptance": false
+      },
+      "python": "3.11.9",
+      "pandas": "3.0.6"
+    }
+  },
+  "hosts": {
+    "dsh": {
+      "version": "2.0.18-next",
+      "embedded_node": "v24.18.1",
+      "sdk": "0.2.1-alpha.2",
+      "profile": "isolated",
+      "installation": "local source copy with existing SDK cache; no network dependency installation",
+      "actual_tool_invocation": "passed",
+      "tool_runtime": "real",
+      "registered_tools": 8,
+      "tool_calls": 29,
+      "states": [
+        "PASS",
+        "FAIL",
+        "REVIEW"
+      ],
+      "bind_complete_paths": "passed",
+      "status_card_asset_and_http_bridge": "passed",
+      "card_visual_browser_review": "not_repeated_client_js_unchanged",
+      "new_model_calls": 0
+    },
+    "claude_code": {
+      "version": "2.1.278",
+      "profile": "isolated",
+      "registration": "passed",
+      "connection": "passed",
+      "actual_tool_invocation": "pending",
+      "reason": "仅执行 MCP 配置管理与连接检查；零模型调用条件下未完成实际宿主工具调用。",
+      "last_registration_connection_recheck_utc": "2026-10-17T14:30:21.545839+00:00"
+    },
+    "codex": {
+      "version": "0.163.0",
+      "profile": "isolated",
+      "registration": "passed",
+      "configuration_readback": "passed",
+      "tool_timeout_sec": 180,
+      "connection": "pending",
+      "actual_tool_invocation": "pending",
+      "reason": "配置管理命令只核对注册；未发起模型对话，不用自写客户端补作宿主验收。",
+      "last_configuration_recheck_utc": "2026-10-17T14:30:21.545839+00:00"
+    }
+  },
+  "cross_entry_comparison": {
+    "status": "passed",
+    "parties": [
+      "real_DSH_ToolRuntime",
+      "MCP_stdio_client_with_real_Python"
+    ],
+    "cases": [
+      {
+        "case": "boundary",
+        "identical": true,
+        "different_fields": [],
+        "mcp_status": "PASS",
+        "dsh_status": "PASS"
+      },
+      {
+        "case": "below-boundary",
+        "identical": true,
+        "different_fields": [],
+        "mcp_status": "FAIL",
+        "dsh_status": "FAIL"
+      },
+      {
+        "case": "broken",
+        "identical": true,
+        "different_fields": [],
+        "mcp_status": "REVIEW",
+        "dsh_status": "REVIEW"
+      },
+      {
+        "case": "historical-fail",
+        "identical": true,
+        "different_fields": [],
+        "mcp_status": "FAIL",
+        "dsh_status": "FAIL"
+      }
+    ],
+    "retained_fields": [
+      "status",
+      "gate_passed",
+      "exit_code",
+      "thresholds",
+      "metrics",
+      "archived_gate",
+      "judge_provenance",
+      "evidence",
+      "input_sha256",
+      "upstream_files",
+      "errors"
+    ],
+    "allowed_differences": [
+      "run_id",
+      "time",
+      "session identity",
+      "artifact paths",
+      "host environment description"
+    ],
+    "three_host_conclusion": "pending_actual_Claude_and_Codex_tool_invocation"
+  },
+  "packaging": {
+    "status": "passed",
+    "method": "actual npm pack plus normal offline clean-consumer npm install; no omit-peer or legacy-peer-deps",
+    "files": 38,
+    "compressed_bytes": 85209,
+    "unpacked_bytes": 262368,
+    "tarball_sha256": "a053c12a1506024d6ec896d4875332855c11960e200f249955041811c394dab3",
+    "installed_files_match_source": true,
+    "dsh_packages_installed": false,
+    "optional_unmet_peer_metadata": "present_not_installed_packages",
+    "installed_bin": "npm exec --offline -- veriscope-mcp",
+    "installed_real_python_cases": 4,
+    "states": [
+      "PASS",
+      "FAIL",
+      "REVIEW"
+    ],
+    "four_readmes_present": true,
+    "documentation_links": "GitHub absolute URLs; documentation must be merged to its target ref before release"
+  },
+  "platforms": {
+    "windows_real_runtime": "passed",
+    "posix_config_unit_paths": "passed",
+    "ubuntu_real_python_ci": {
+      "status": "pending",
+      "workflow_defined": true,
+      "remote_job_run": false,
+      "upstream_commit": "1b89bcabb83e1b123039799516596fdcfd393d42",
+      "python": "3.11.9",
+      "pandas": "3.0.6",
+      "reason": "本轮未获推送授权，远端作业没有运行；Windows 上 LF 回放不代替 Linux 验收。"
+    }
+  },
+  "retention": {
+    "default": "indefinite",
+    "automatic_deletion": false,
+    "cli": "node scripts/prune.mjs --dry-run --json",
+    "deletion_entrypoint": false,
+    "inventory_tests": "passed",
+    "relationships": "recorded_unverified",
+    "mcp_state": "explicit_external_path_required",
+    "dsh_state": "legacy_package_default_preserved_external_path_recommended"
+  },
+  "deployment_review": [
+    {
+      "item": "MCP 独立部署与依赖卫生",
+      "status": "resolved_locally",
+      "evidence": "已安装 tarball 的 bin 可执行，未拉入 DSH alpha peer。"
+    },
+    {
+      "item": "DSH 启动诊断",
+      "status": "resolved_locally",
+      "evidence": "版本先于 SDK 代码加载核对；缺失、不兼容、传递依赖／加载错误有固定诊断。真实 DSH 与无 SDK 的干净安装入口均复验。"
+    },
+    {
+      "item": "状态根持久性",
+      "status": "partially_resolved",
+      "evidence": "MCP 强制显式目录；DSH 仍保留兼容默认值，建议外置持久目录。"
+    },
+    {
+      "item": "跨平台运行",
+      "status": "pending_linux_runtime",
+      "evidence": "POSIX 解析和 LF 契约已实现；Linux 真实回放待远端 CI。"
+    },
+    {
+      "item": "Claude／Codex 宿主能力",
+      "status": "pending_actual_tool_invocation",
+      "evidence": "隔离注册通过；Claude 连接通过，实际工具调用待验。"
+    },
+    {
+      "item": "生命周期管理",
+      "status": "limited",
+      "evidence": "有只读容量与关联预演；无自动保留期、备份恢复或删除入口。"
+    },
+    {
+      "item": "多用户与企业服务能力",
+      "status": "outside_product_scope",
+      "evidence": "单人本地工具，不承诺 RBAC、共享状态隔离、集中审计或 SLA。"
+    }
+  ],
+  "isolation": {
+    "status": "passed",
+    "upstream_files_checked": 14,
+    "upstream_git_head_status_refs_unchanged": true,
+    "original_contract_and_client_js_unchanged": true,
+    "default_dsh_profile_files_unchanged": true,
+    "default_claude_codex_configs_unchanged": true,
+    "authentication_copied": false,
+    "plugin_head_unchanged": true,
+    "staged_changes": false,
+    "model_calls": {
+      "evaluation": 0,
+      "conversation": 0
+    },
+    "git_actions": "only_local_branch_creation; no staging commit push tag or release",
+    "npm_published": false,
+    "verification_scope": "Implementation acceptance before publication; its Git-state assertions describe that recorded phase only."
+  },
+  "resolved_failures": [
+    {
+      "item": "DSH alpha SDK 不支持 minimum／maximum DSL 字段",
+      "resolution": "仅 DSH 投影移除这两个表示；共享服务保留数值校验，新增回归通过。",
+      "initial_failure_record_retained": true
+    },
+    {
+      "item": "隔离验收脚本 Fetch bad port",
+      "resolution": "验收端口由 4190 改为 4191；卡片资源与状态桥重新实测通过，产品代码无此问题。",
+      "initial_failure_records_retained": true
+    }
+  ],
+  "pending": [
+    "Ubuntu 远端单元测试矩阵及真实 Python 作业",
+    "Claude Code 实际工具调用",
+    "Codex 连接及实际工具调用",
+    "三家真实宿主同档逐字段对照"
+  ],
+  "evidence": {
+    "raw_records_location": "local verification output, excluded from public package; no raw archive text or credentials copied here",
+    "records": [
+      {
+        "name": "sdk-hardening/test-results.json",
+        "sha256": "c0858750b1ff8beca35dc0d26ce2e16c93b85aa86098ef57fd5ad7288749706d"
+      },
+      {
+        "name": "sdk-hardening/tests-full.txt",
+        "sha256": "3f26e245aaa48c123fd457291e2a40a98e6df64407347eab6d53542497b219ee"
+      },
+      {
+        "name": "sdk-hardening/mcp-real/mcp-real-python.json",
+        "sha256": "656ee9de477fe606f56715b8477c2ee49963673f962ead37cc11e61158507634"
+      },
+      {
+        "name": "sdk-hardening/lf-contract-verification.json",
+        "sha256": "0aa61bf373d489bdf8e88c0edd3313523a9ec76d1fc0b360b1c4244c857a0323"
+      },
+      {
+        "name": "sdk-hardening/host-acceptance-1792247284578.json",
+        "sha256": "b08fe1728a1c24aa11e44cc73dc9aa080535ebb9812dd36344eb6940f63e4f7c"
+      },
+      {
+        "name": "sdk-hardening/dsh-comparison.json",
+        "sha256": "3d7561b9130a6a712fddf1e554b1540576c6547c4f58c55c3c8219ab196c4e61"
+      },
+      {
+        "name": "sdk-hardening/cross-entry-comparison.json",
+        "sha256": "19410d86feaa607799240dd6a8842c3de9d3dbc64dc3800c31d408ecbc3b1a44"
+      },
+      {
+        "name": "sdk-hardening/pack/packaging-acceptance.json",
+        "sha256": "dd14cc242845ca9e26529d645afe2dcb4dc27601af1a721faa3f144925b446b9"
+      },
+      {
+        "name": "sdk-hardening/host-registration.json",
+        "sha256": "f1eb4efecc7064275759e395211e0a246302a21e6f80bfb6f41b5be9e61a03a0"
+      },
+      {
+        "name": "sdk-hardening/upgrade-acceptance.json",
+        "sha256": "9b256235d589ac05f960103620afcdd425699529e12e086ba23c00000d0a6e33"
+      },
+      {
+        "name": "sdk-hardening/isolation-after.json",
+        "sha256": "1935faa4ef805df19b320b213b48a68fcf6961f4daa287b77bbb14076ae6911c"
+      },
+      {
+        "name": "sdk-hardening/runtime-coverage.json",
+        "sha256": "8751f0d9ada29d59bc51fc4583a6f710b1481d97ab5eba7901384d734aeb73fb"
+      }
+    ]
+  },
+  "sdk_startup": {
+    "status": "passed",
+    "required_tools_version": "0.2.1-alpha.2",
+    "version_checked_before_sdk_import": true,
+    "defineTool_checked": true,
+    "error_codes": [
+      "SDK_MISSING",
+      "SDK_INCOMPATIBLE",
+      "SDK_LOAD_FAILED"
+    ],
+    "unit_cases": 10,
+    "installed_dsh_entry_without_sdk": "SDK_MISSING",
+    "mcp_independent_of_dsh_sdk": true,
+    "bootstrap_receipt_bound": true,
+    "plugin_local_js_import_files_bound": 24,
+    "note": "版本和必要接口检查不替代完整宿主验收；不自动安装或切换 SDK，不反射任意异常原文。"
+  },
+  "upgrade_impact": {
+    "warning_in_four_readmes_and_changelog_top": true,
+    "full_state_and_original_archive_backup_recommended": true,
+    "receipt_export_is_not_full_backup": true,
+    "real_prior_candidate_receipts_checked": 3,
+    "old_historical_verdicts": [
+      "PASS",
+      "FAIL",
+      "FAIL"
+    ],
+    "current_verdicts": [
+      "REVIEW",
+      "REVIEW",
+      "REVIEW"
+    ],
+    "stored_bytes_unchanged": true,
+    "scope": "抽查前一轮0.4.0本地候选生成的3份真实回执；不是用户全部回执普查，也不是0.3.x发布版的真实升级实测。旧字段兼容另有单元回归。"
+  },
+  "revision": {
+    "name": "DSH SDK startup and migration documentation hardening",
+    "previous_round_test_total": 254,
+    "new_tests_this_revision": 10,
+    "prior_records_and_tarball_retained": true,
+    "prior_tarball_sha256": "6eee76889a530f13a8b2d59510a2b496227a37d6bbd58264f24e00863c2f32ed",
+    "git_and_publication_state_unchanged_at_revision_acceptance": true
+  },
+  "publication": {
+    "status": "prepared",
+    "target_version": "0.4.0",
+    "prepared_at_utc": "2026-10-17T14:38:29.342935+00:00",
+    "authorization": "User approved branch push, PR, release, and subsequent acceptance updates",
+    "ci_and_host_acceptance": "tracked separately; unfinished items remain pending"
+  }
+}

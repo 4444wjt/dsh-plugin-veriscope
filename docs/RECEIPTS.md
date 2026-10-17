@@ -8,6 +8,12 @@
 
 这是一份本地完整性记录，不是签名或外部时间戳，不抵御能重写整个状态根的用户。未哈希整个Node安装、Python标准库、pandas全部代码或操作系统；覆盖清单以回执为准，不宣称检测清单外变化。
 
+### 升级与备份
+
+0.4.0 新增入口与启动检查，并扩大插件文件哈希覆盖；升级后旧回执的当前有效性为 REVIEW，历史 PASS／FAIL 不会被改写。只有重新 replay 才能取得新版本当前可用的回执。
+
+升级前停止相关宿主，备份完整状态目录（显式 `VERISCOPE_STATE_DIR`，未设置的 DSH 则为包内 `.local`）及原始归档、基线归档。包内状态可能随重装丢失，持久状态应放在插件外。`veriscope_gate_export` 的单条 JSON 仅包含原回执，不包含完整报告、stdout／stderr 或原始归档，不能代替完整备份。恢复备份只保留历史记录，不恢复旧回执的当前放行资格或会话授权。
+
 ## GateStatusV1
 
 `historical_verdict`是已存结果，`current_verdict`是本次可采用结论。`freshness`为FRESH／STALE／UNKNOWN，`integrity`为VALID／INVALID／UNKNOWN。完整回执与当前范围一致才沿用历史三态；缺失、损坏或不能确认时当前为REVIEW／null。

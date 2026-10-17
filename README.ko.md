@@ -4,6 +4,8 @@
 
 > 이 문서는 중국어 원문의 번역입니다. 해석이 다를 경우 중국어 원문을 우선합니다. 모든 절을 번역했지만 세부 조건은 원문도 함께 확인하십시오.
 
+> **0.4.0 업그레이드 안내**: 기존 영수증의 현재 유효성은 REVIEW가 되지만 과거 PASS／FAIL 판정은 다시 쓰지 않습니다. 업그레이드 전에 전체 상태 디렉터리와 원본 아카이브를 백업하고 플러그인 밖의 영구 상태 디렉터리를 사용하십시오. 패키지 안의 `.local`은 재설치 시 사라질 수 있으며 영수증 내보내기만으로는 완전한 백업이 되지 않습니다. replay를 다시 실행해 새 버전의 영수증을 받으십시오.
+
 기존 VeriScope 평가 JSON을 DSH에 연결하고 원래의 Python Quality Gate를 호출해 **통과／실패／재확인 필요**, 현재 영수증의 유효성과 출처를 반환합니다.
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 수동 동기화 미러](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · VeriScope 본체: [메인](https://github.com/4444wjt/RAG_Evaluation_Demo)／[미러](https://gitee.com/kkbushishou/rag-hallucination-evaluator). 이슈와 PR은 GitHub로.
@@ -42,7 +44,7 @@ Python이 유일한 수치 판정자입니다. REVIEW가 PASS로 바뀌지 않�
 
 ## 설치와 설정
 
-npm에 정식 배포 패키지가 있습니다. 검증된 DSH CLI에서는 프로필을 명시해야 합니다. 아래는 전용 `veriscope-demo`를 사용합니다.
+이 문서는 **0.4.0**에 해당하며 DSH 플러그인과 독립적인 `veriscope-mcp` 진입점을 제공합니다. 사용 가능한 배포 버전은 [npm 패키지 페이지](https://www.npmjs.com/package/dsh-plugin-veriscope)에서 확인하십시오. MCP 설정과 검증 대기 범위는 아래에 안내합니다. 검증된 DSH CLI에서는 프로필을 명시합니다. 아래는 전용 `veriscope-demo`를 사용합니다.
 
 ```powershell
 # 설치
@@ -61,7 +63,9 @@ dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 
 경로는 실제 소스 위치로 바꾸십시오. 디렉터리나 link 설치를 registry 설치의 증거로 삼지 마십시오. **설치 성공은 게이트 통과가 아닙니다.** 첫 사용에는 `VERISCOPE_ROOT`와 `VERISCOPE_PYTHON` 설정과 진단이 필요합니다. npm 패키지에는 테스트와 `docs`가 포함되지 않습니다. `npm test`는 소스 개발용이고, `node scripts/verify-replay.mjs`도 전체 소스 저장소와 검증 자료가 있을 때만 동작하며 설치 후 기능이 아닙니다. 자세한 문서는 저장소를 참조하십시오.
 
-검증 환경: Windows, DSH NEXT 2.0.18-next, 내부 DSH／tools／skill **0.2.1-alpha.2**. Node ≥22.19. 다른 호스트 버전은 미검증입니다. 상위 및 Python／pandas 호환도 필요하며 고정 의존성은 [상위 설명](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)에 있습니다. 이 플러그인은 상위 전체나 업무 아카이브를 동봉하지 않습니다.
+0.3.x의 과거 검증 환경: Windows, DSH NEXT 2.0.18-next, 내부 DSH／tools／skill **0.2.1-alpha.2**. Node ≥22.19. 다른 호스트 버전은 미검증입니다. 상위 및 Python／pandas 호환도 필요하며 고정 의존성은 [상위 설명](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md)에 있습니다. 이 플러그인은 상위 전체나 업무 아카이브를 동봉하지 않습니다.
+
+DSH 진입점은 `@deepseek-ai/dsh-tools`의 `0.2.1-alpha.2`를 요구하며 SDK 코드를 불러오기 전에 버전을, 불러온 뒤에는 `defineTool`을 확인합니다. 미설치·비호환·로드 실패는 각각 `SDK_MISSING`, `SDK_INCOMPATIBLE`, `SDK_LOAD_FAILED`로 보고하고 SDK를 자동 설치하거나 전환하지 않습니다. 이 검사는 호스트 검증을 대신하지 않습니다. MCP는 DSH SDK를 불러오지 않습니다.
 
 ### 설정 항목
 
@@ -69,9 +73,9 @@ dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 
 | 설정 | 진입점 | 기본값과 요구 사항 |
 |---|---|---|
-| `veriscopeRoot` | `VERISCOPE_ROOT` | `D:\RAG_Evaluation_Demo`. 다른 컴퓨터에서는 명시 설정 |
-| `pythonPath` | `VERISCOPE_PYTHON` | 상위의 `.venv`／`venv`를 차례로 탐색. PATH로 대체하지 않음 |
-| 상태 루트 | `VERISCOPE_STATE_DIR` | `<플러그인>/.local`. 명시 값 우선, 읽기 전용 설치에도 사용 가능 |
+| `veriscopeRoot` | `VERISCOPE_ROOT` | Windows 기본값 `D:\RAG_Evaluation_Demo`. POSIX에서는 명시 설정 필수 |
+| `pythonPath` | `VERISCOPE_PYTHON` | `.venv`／`venv`를 차례로 탐색. Windows는 `Scripts/python.exe`, POSIX는 `bin/python`. PATH로 대체하지 않음 |
+| 상태 루트 | `VERISCOPE_STATE_DIR` | DSH 기본값 `<플러그인>/.local`. 영구 디렉터리 권장. MCP는 명시 설정 필수 |
 | 알림 모드 | cordis patch `completionMode` | `off`. `off` 또는 `remind`만 허용, 그 외는 오류 |
 
 세 환경 변수의 명시 값은 비어 있지 않은 절대 경로여야 하며, 잘못된 값이 조용히 대체되지 않습니다. **DSH를 시작하는 같은 터미널**에서 설정한 뒤 시작하거나 완전히 재시작하십시오. 아래 마지막 줄은 위의 npm 설치 대신 GitHub에서 설치할 때 사용하는 명령입니다. 이미 설치했다면 실행할 필요가 없습니다.
@@ -92,6 +96,12 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 ```
 
 `off`는 턴 종료 알림을 끄며 모든 도구는 계속 사용할 수 있습니다. `remind`는 미완료 연결 작업만 알리며 일반 채팅의 전면 차단을 약속하지 않습니다. 경로는 이 config에 쓸 수 없습니다.
+
+## 여러 호스트용 MCP(0.4.0)
+
+이 버전은 Claude Code／Codex용 stdio MCP 설정을 제공합니다. Claude는 격리 환경에서 등록과 연결, Codex는 등록과 설정 재확인까지 완료했으며 두 호스트의 실제 도구 호출은 검증 대기입니다. Windows는 검증했으며 Linux 실리플레이는 검증 대기입니다. 절대 Node 경로로 소스 `mcp.js`를 실행합니다. 설정과 격리 환경 예시는 [MCP 연결 안내](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)를 보십시오. DSH SDK를 불러오지 않습니다. 첫 MCP 버전은 `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, `veriscope_gate_list` 네 도구만 제공하며 네이티브 카드는 없습니다. batch／export와 bind／complete는 DSH 전용입니다. 세션 바인딩은 이식하지 않으며 MCP 보고서의 `execution.session_id`는 `null`입니다.
+
+MCP 네 도구 모두 유효한 `VERISCOPE_STATE_DIR`의 명시 설정이 필수입니다. 없으면 재확인 필요를 반환하고 패키지 디렉터리로 대체하지 않습니다. doctor는 임시 프로브를 쓰고 지우며 replay는 보고서와 영수증을 쓰므로 두 도구는 읽기 전용이 아닙니다. status／list는 읽기 전용입니다. 업무 판정 FAIL은 도구 실행 오류와 다릅니다. 실제 호스트 도구 호출, Linux 실리플레이, 이 버전의 검증 상태는 [검증 기록](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json)에 구분하여 남깁니다. 등록 성공이나 자체 클라이언트의 성공만으로 호스트 검증을 대체할 수 없습니다.
 
 ## 여덟 개의 도구
 
@@ -114,6 +124,8 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 - `task_id`는 영문·숫자·밑줄·점·하이픈 1–80자이며, 세션 식별자는 도구 인수로 위조할 수 없습니다. 연결은 메모리에만 있고 재시작 후 다시 연결해야 하며, 디스크의 완료 기록이 권한을 복원하지 않습니다.
 
 "유효성 확인"은 status, "게이트 재실행"은 replay입니다. 실제 replay만 영수증을 만듭니다. 입력·기준선·정책·상위·플러그인·환경이 바뀌면 기존 영수증은 재확인 필요가 되고 과거 실패는 보존됩니다. 자세한 내용은 [영수증 프로토콜](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md).
+
+0.4.0은 기존 감사 계약 또는 공개 커밋 `1b89bcabb83e1b123039799516596fdcfd393d42`에서 감사한 LF 계약 중 하나를 받습니다. 계약 전체가 원래 바이트와 일치해야 하며 파일별 혼합이나 실행 시 정규화는 하지 않습니다. MCP 진입점, 공유 도구 목록, 계약 선택 코드도 영수증 해시에 포함됩니다. 업그레이드 후 기존 영수증의 현재 유효성은 REVIEW가 되지만 과거 기록은 유지됩니다.
 
 ### 입력과 출력 예시
 
@@ -144,7 +156,7 @@ JSON이 거부되면 `execution.errors[].diagnostic`이 확인 가능한 발견 
 
 status의 `changes`는 원본 영수증과 이번에 캡처한 고정 연결 항목의 차이만 설명하고 최대 20개까지 표시하며 잘림을 밝힙니다. `COMPLETE`는 나열된 범위를 확인했다는 뜻일 뿐이며 변화가 없다고 사실 정확성을 뜻하지 않습니다. `UNVERIFIED`는 일부 또는 전부를 확인하지 못했다는 뜻이고 확인된 변화는 계속 나열됩니다. 계약 검사 실패는 원래 거부 경로를 유지하고 나머지는 미확인으로 둡니다. 검사를 우회해 비교를 조작하지 않고, 그것으로 점수 변화를 귀속시키지도 않습니다.
 
-## 네이티브 결과 카드
+## 네이티브 결과 카드（DSH）
 
 `tool.call.toolview`를 지원하는 호스트는 어두운 배경에 금색 포인트의 중국어 결과 카드를 표시합니다. 현재의 세 가지 판정 상태, 다음 단계, "다시 확인" 버튼, 접히는 근거입니다. 버튼은 상태를 읽기만 하고 리플레이하거나 완료를 등록할 수 없습니다. 카드 인터페이스가 없으면 중국어 도구 텍스트를 유지합니다.
 
@@ -170,6 +182,8 @@ replay가 FAIL을 확정한 뒤 영수증 쓰기에 실패해도 핵심 FAIL은 
 
 기록은 `<상태 루트>/runs/<run_id>/`에 `report.json`, stdout, stderr, 조건을 갖춘 경우 `receipt.json`으로 저장됩니다. 완료 등록은 `completions/`에 따로 저장합니다. 추가 기록은 실패를 덮지 않습니다. 로그에는 아카이브 일부와 로컬 경로가 들어갈 수 있으니 공유 전에 가리십시오. 플러그인은 아카이브를 업로드하지 않고 전체 환경을 출력하지 않습니다.
 
+모든 기록은 기본적으로 무기한 보존하며 자동 정리는 없습니다. `VERISCOPE_STATE_DIR`를 명시한 뒤 `node scripts/prune.mjs --dry-run --json`을 실행하면 파일 목록, 논리 바이트 수, 기록된 연관만 읽기 전용으로 표시합니다. 연관의 정확성을 검증하지 않으며 삭제 기능도 없습니다. 제거나 재설치에 대비해 상태는 플러그인 디렉터리 밖에 보관하십시오.
+
 입력은 10MiB, stdout／stderr는 각 2MiB, 리플레이는 120초, 환경 진단은 매번 10초로 제한됩니다. status는 파일을 읽고 해시하며 Python을 띄워 버전과 pandas 메타데이터를 읽지만, 평가 모델이나 게이트 스크립트는 실행하지 않습니다. 해시는 의미적 정확성을 증명하지 않으며 상태 루트 전체를 다시 쓸 수 있는 사용자는 대상이 아닙니다. 확인 이후의 변화는 다시 확인해야만 발견됩니다.
 
 과거 Trace는 글자 그대로의 출처만 대조하고 `historical_ai`로 표시합니다. 새로운 의미 검사가 아닙니다. 핵심은 새 평가 모델 호출이 0이며, 호스트 대화에는 여전히 토큰 비용이 들 수 있습니다. 알고리즘 독창성이나 엔드투엔드 비용 절감을 주장하지 않습니다.
@@ -182,7 +196,7 @@ node scripts/replay.mjs --result 'D:\your-data\evaluation.json' --json
 dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope
 ```
 
-단위 테스트는 구성한 아카이브와 프로토콜 스텁을 쓰며 모델도 Python도 필요로 하지 않습니다. 실제 Python과 호스트 검증은 [검증 노트](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md)를 보십시오. 제거는 등록을 지우고 사용자 상태와 과거 증거는 보존합니다. 소스에서 배포하려면 `VERISCOPE_RELEASE=1`을 명시하고 버전／tag 가드를 통과해야 합니다. 자세한 내용은 기여 안내를 보십시오.
+단위 테스트는 구성한 아카이브와 프로토콜 스텁을 쓰며 모델도 Python도 필요로 하지 않습니다. 실제 Python과 호스트 검증은 [검증 노트](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/verification.md)를 보십시오. 제거하면 등록이 사라집니다. 플러그인은 외부 상태 루트를 삭제하지 않지만 패키지 내부의 기본 상태는 제거나 재설치로 잃을 수 있으니 먼저 백업하십시오. 소스에서 배포하려면 `VERISCOPE_RELEASE=1`을 명시하고 버전／tag 가드를 통과해야 합니다. 자세한 내용은 기여 안내를 보십시오.
 
 ## 기여와 라이선스
 

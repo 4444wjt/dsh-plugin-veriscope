@@ -26,17 +26,18 @@ test('invalid explicit interpreter does not fall back to venv', t => {
 test('venv probe uses .venv before venv; absence never selects PATH', t => {
   const f = setup(t)
   assert.throws(() => resolveConfiguration({ VERISCOPE_ROOT: f.root }), /禁止回退/)
-  for (const name of ['venv', '.venv']) { fs.mkdirSync(path.join(f.root, name, 'Scripts'), { recursive: true }); fs.writeFileSync(path.join(f.root, name, 'Scripts/python.exe'), '') }
+  const suffix = process.platform === 'win32' ? ['Scripts', 'python.exe'] : ['bin', 'python']
+  for (const name of ['venv', '.venv']) { fs.mkdirSync(path.join(f.root, name, suffix[0]), { recursive: true }); fs.writeFileSync(path.join(f.root, name, ...suffix), '') }
   const config = resolveConfiguration({ VERISCOPE_ROOT: f.root })
-  assert.equal(config.pythonPath, path.join(f.root, '.venv/Scripts/python.exe'))
+  assert.equal(config.pythonPath, path.join(f.root, '.venv', ...suffix))
   assert.equal(config.sources.pythonPath, 'venv_probe')
 })
 test('missing root configuration uses the documented default or reports its absence', () => {
-  if (fs.existsSync('D:\\RAG_Evaluation_Demo\\scripts\\gate_replay.py')) {
+  if (process.platform === 'win32' && fs.existsSync('D:\\RAG_Evaluation_Demo\\scripts\\gate_replay.py')) {
     const config = resolveConfiguration({ VERISCOPE_PYTHON: process.execPath })
     assert.equal(config.sources.veriscopeRoot, 'default')
     assert.equal(config.veriscopeRoot, fs.realpathSync('D:\\RAG_Evaluation_Demo'))
-  } else assert.throws(() => resolveConfiguration({ VERISCOPE_PYTHON: process.execPath }), /根目录/)
+  } else assert.throws(() => resolveConfiguration({ VERISCOPE_PYTHON: process.execPath }), /根目录|VERISCOPE_ROOT/)
 })
 for (const value of [NaN, Infinity, -Infinity, -0.01, 1.01, '0.8', null]) test(`threshold rejects ${String(value)} (${typeof value})`, () => {
   assert.throws(() => validateArguments({ result_path: 'a.json', faith: value }, process.cwd()), /有限数值/)

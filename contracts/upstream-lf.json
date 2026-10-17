@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "contract": "audited-python-stdout-v1-lf",
+  "captured_at_utc": "2026-10-17T13:57:42.650352Z",
+  "source": {
+    "repository": "https://github.com/4444wjt/RAG_Evaluation_Demo",
+    "commit": "1b89bcabb83e1b123039799516596fdcfd393d42",
+    "audit": "Eight fixed Git blobs compared against the original audited byte hashes; only CRLF-to-LF differences accepted. No runtime byte normalization.",
+    "files": {
+      "scripts/gate_replay.py": {
+        "original_sha256": "3ecd6611da672ed9d22ccd5abf438e83e1f875fa589b175df692d0f26031b803",
+        "lf_sha256": "e95d60876db958b27e01e99cd02325339336ed78c28d78227a53996f4d0fddb5",
+        "only_crlf_to_lf": true
+      },
+      "backend/config.py": {
+        "original_sha256": "fd1651e31a583ef3d8a7c327b222080929bef2e938c0ea4616a45ee233b6bd63",
+        "lf_sha256": "fd1651e31a583ef3d8a7c327b222080929bef2e938c0ea4616a45ee233b6bd63",
+        "only_crlf_to_lf": true
+      },
+      "backend/core/gate.py": {
+        "original_sha256": "89d98d3ae8eeb076da163427a68477e59de3a8783c69d0e5bcd614cc29e9d6ae",
+        "lf_sha256": "89d98d3ae8eeb076da163427a68477e59de3a8783c69d0e5bcd614cc29e9d6ae",
+        "only_crlf_to_lf": true
+      },
+      "backend/core/types.py": {
+        "original_sha256": "48d64de58c4474d7c9fb1f41d66f801bbed08faf63a3a32507c11a159ffb736c",
+        "lf_sha256": "48d64de58c4474d7c9fb1f41d66f801bbed08faf63a3a32507c11a159ffb736c",
+        "only_crlf_to_lf": true
+      },
+      "backend/core/attribution.py": {
+        "original_sha256": "6860b3a43ce0b0e2c10f42e6f8672c9a6985942061aafb6d5aa261ae47ad605d",
+        "lf_sha256": "6860b3a43ce0b0e2c10f42e6f8672c9a6985942061aafb6d5aa261ae47ad605d",
+        "only_crlf_to_lf": true
+      },
+      "backend/core/regression.py": {
+        "original_sha256": "17e2c10b6b41ac293f47d1491aad6493fab51c17df3e66f8f0cb779cbeac7564",
+        "lf_sha256": "937d34e9614617970d381b4bae1cdc1383d894bc0b63cf23092405b47a19c9c7",
+        "only_crlf_to_lf": true
+      },
+      "backend/__init__.py": {
+        "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lf_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "only_crlf_to_lf": true
+      },
+      "backend/core/__init__.py": {
+        "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "lf_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "only_crlf_to_lf": true
+      }
+    }
+  },
+  "exit_codes": {
+    "pass": 0,
+    "block": 1,
+    "invalid": 2
+  },
+  "files": {
+    "scripts/gate_replay.py": "e95d60876db958b27e01e99cd02325339336ed78c28d78227a53996f4d0fddb5",
+    "backend/config.py": "fd1651e31a583ef3d8a7c327b222080929bef2e938c0ea4616a45ee233b6bd63",
+    "backend/core/gate.py": "89d98d3ae8eeb076da163427a68477e59de3a8783c69d0e5bcd614cc29e9d6ae",
+    "backend/core/types.py": "48d64de58c4474d7c9fb1f41d66f801bbed08faf63a3a32507c11a159ffb736c",
+    "backend/core/attribution.py": "6860b3a43ce0b0e2c10f42e6f8672c9a6985942061aafb6d5aa261ae47ad605d",
+    "backend/core/regression.py": "937d34e9614617970d381b4bae1cdc1383d894bc0b63cf23092405b47a19c9c7",
+    "backend/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend/core/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
