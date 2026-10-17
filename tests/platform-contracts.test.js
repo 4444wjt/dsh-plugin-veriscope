@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { resolveConfiguration } from '../lib/config.js'
 import { CONTRACT_FILES, loadContractProfiles, selectContract } from '../lib/contracts.js'
 import { sha256 } from '../lib/source.js'
-import { storePaths, RECEIPT_FILES, digest } from '../lib/receipt.js'
+import { storePaths, RECEIPT_FILES, digest, probeEnvironment } from '../lib/receipt.js'
 import { createDoctorService } from '../lib/doctor.js'
 import { createReplayService } from '../lib/replay.js'
 import { createStatusService } from '../lib/status.js'
@@ -37,6 +37,20 @@ for (const platform of ['win32', 'linux', 'darwin']) test(`venv resolution follo
 })
 for (const platform of ['linux', 'darwin']) test(`non-Windows ${platform} refuses missing root without probing Windows default`, () => {
   assert.throws(() => resolveConfiguration({ VERISCOPE_PYTHON: process.execPath }, { platform }), /必须显式设置 VERISCOPE_ROOT/)
+})
+
+for (const source of ['environment', 'venv_probe']) test(`POSIX venv symlink retains launch path and bound binary (${source})`, { skip: process.platform === 'win32' }, async t => {
+  const f = setup(t), executable = path.join(f.root, '.venv', 'bin', 'python')
+  fs.mkdirSync(path.dirname(executable), { recursive: true })
+  fs.symlinkSync(process.execPath, executable)
+  const env = { VERISCOPE_ROOT: f.root, ...(source === 'environment' ? { VERISCOPE_PYTHON: executable } : {}) }
+  const config = resolveConfiguration(env, { platform: 'linux' })
+  assert.equal(config.pythonPath, executable)
+  assert.equal(config.sources.pythonPath, source)
+  const result = await probeEnvironment(config, { runner: f.runner, env })
+  assert.equal(f.calls[0].executable, executable)
+  assert.equal(result.python.path, executable)
+  assert.equal(result.python.real_path, fs.realpathSync(process.execPath))
 })
 
 test('MCP state cannot fall back through artifactsDir or create a plugin default', t => {
