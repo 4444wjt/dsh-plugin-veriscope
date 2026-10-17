@@ -1,5 +1,16 @@
 # 更新记录
 
+## 0.5.0 — 本地候选，未发布
+
+> **升级提示**：共有代码与插件版本变化会使旧回执的当前有效性进入 REVIEW；历史 PASS／FAIL 不改写。先备份完整状态根及原归档。ReceiptV1 重新 replay，ReceiptV2 重新 check；不自动迁移旧回执为通过。
+
+- 新增 Node 独立阈值判定器 builtin-threshold-v1，以及 GateArchiveV1／GatePolicyV1 Schema；全部输入记录等权均值，显式阈值与单位，缺失／非法值不补零、不跳过，完整指标确认 FAIL 优先。
+- DSH／MCP 新增 veriscope_gate_check，CLI 新增 veriscope-check；builtin doctor、check 与 ReceiptV2 状态检查不依赖 VeriScope、Python、pandas 或 Ragas。B2 强制显式状态根，建议使用包外持久目录；不读取 .env。
+- 读取指定 Ragas records JSON 布局，保持原列名与缺失值；不把 faithfulness 改为 pos_faithfulness。样例按官方文档构造，不是真实评测历史。
+- ReceiptV2 绑定原始输入、策略、规范化数据、代码及 Node 环境；原子生成、不覆盖记录。状态、清单、JSON／Markdown 导出与只读留存预演支持两种回执；B2 暂不提供 share／batch／bind／complete。
+- 原 Python 裁判与契约保留；B2 与原门禁分开标识，不承诺同等判定。原卡片对 B2 状态改为文本降级，避免显示原正样本字段。
+- 更新四语 README、接入说明与独立验收记录。本候选不据此宣称用户增长、事实正确性、算法首创或降本；未执行 Git 写入或发布。
+
 ## 0.4.0 — 2026-10-17
 
 > **0.4.0 升级提示**：旧回执的当前有效性将进入 REVIEW，历史 PASS／FAIL 不会改写。升级前请备份完整状态目录及原归档，并使用插件外的持久状态目录；包内 `.local` 可能随重装丢失，单独导出回执不是完整备份。重新 replay 后取得新版本回执。

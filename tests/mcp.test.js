@@ -45,7 +45,7 @@ function start(t, { fake = false, env = {}, state = true } = {}) {
     get stderr() { return Buffer.concat(errors).toString('utf8') }, get stdout() { return Buffer.concat(chunks).toString('utf8') } }
 }
 
-test('real MCP executable negotiates supported versions, advertises only four shared tools and side effects', async t => {
+test('real MCP executable negotiates supported versions, advertises five shared tools and side effects', async t => {
   const client = start(t)
   const handshake = await client.ready()
   assert.equal(handshake.result.protocolVersion, '2025-11-25')
@@ -53,7 +53,7 @@ test('real MCP executable negotiates supported versions, advertises only four sh
   assert.deepEqual(handshake.result.capabilities, { tools: { listChanged: false } })
   client.send({ jsonrpc: '2.0', id: 2, method: 'tools/list' })
   const list = (await client.response(2)).result.tools
-  assert.deepEqual(list.map(item => item.name).sort(), ['veriscope_doctor', 'veriscope_gate_list', 'veriscope_gate_replay', 'veriscope_gate_status'])
+  assert.deepEqual(list.map(item => item.name).sort(), ['veriscope_doctor', 'veriscope_gate_check', 'veriscope_gate_list', 'veriscope_gate_replay', 'veriscope_gate_status'])
   for (const tool of list) assert.equal(tool.annotations.readOnlyHint, ['veriscope_gate_list', 'veriscope_gate_status'].includes(tool.name))
   assert.equal(fs.existsSync(client.stateRoot), false, 'initialization and tools/list must not create state')
 })
@@ -90,14 +90,40 @@ test('protocol errors cover JSON syntax, invalid envelope, initialization, unkno
   c.send(initialize(7)); assert.equal((await c.response(7)).error.code, -32600)
 })
 
-test('all four real MCP tools require explicit state without touching default storage', async t => {
+test('all five real MCP tools require explicit state without touching default storage', async t => {
   const c = start(t, { state: false }); await c.ready()
-  const cases = [['veriscope_doctor', {}], ['veriscope_gate_list', {}], ['veriscope_gate_replay', { result_path: 'missing.json' }], ['veriscope_gate_status', { run_id: '11111111-1111-4111-8111-111111111111' }]]
+  const cases = [['veriscope_doctor', {}], ['veriscope_gate_list', {}], ['veriscope_gate_replay', { result_path: 'missing.json' }], ['veriscope_gate_status', { run_id: '11111111-1111-4111-8111-111111111111' }], ['veriscope_gate_check', { archive_path: 'missing.json', policy_path: 'policy.json' }]]
   for (const [index, [name, args]] of cases.entries()) {
     c.send(call(index + 10, name, args)); const value = (await c.response(index + 10)).result
     assert.equal(value.isError, true); assert.equal(value.structuredContent.status, 'REVIEW'); assert.ok(value.structuredContent.reason_codes.includes('INVALID_STATE_DIR'))
   }
   assert.equal(fs.existsSync(c.stateRoot), false)
+})
+
+test('Node-only MCP check, builtin doctor, status and list agree on PASS/FAIL/REVIEW without upstream', async t => {
+  const c = start(t, { env: { VERISCOPE_ROOT: '', VERISCOPE_PYTHON: '', PATH: '' } }); await c.ready()
+  c.send(call(2, 'veriscope_doctor', { engine: 'builtin' }))
+  const doctor = (await c.response(2)).result
+  assert.equal(doctor.structuredContent.ready, true); assert.equal(doctor.isError, false)
+  const policy = path.join(c.root, 'policy.json'), archive = path.join(c.root, 'scores.json')
+  fs.writeFileSync(policy, JSON.stringify({ schema_version: 'GatePolicyV1', aggregation: 'mean', population: 'all_provided_rows', rules: [{ metric: 'faithfulness', unit: 'ratio', operator: 'gte', threshold: .8 }] }))
+  let id = 10
+  for (const [score, expected] of [[.9, 'PASS'], [.7, 'FAIL'], [null, 'REVIEW']]) {
+    fs.writeFileSync(archive, JSON.stringify([{ user_input: '协议构造例', faithfulness: score }]))
+    c.send(call(id, 'veriscope_gate_check', { archive_path: archive, policy_path: policy, format: 'ragas-records-v1' }))
+    const result = (await c.response(id++)).result
+    assert.equal(result.structuredContent.status, expected); assert.equal(result.isError, false)
+    assert.equal(result.structuredContent.execution.session_id, null); assert.equal(result.structuredContent.recording.receipt_available, true)
+    c.send(call(id, 'veriscope_gate_status', { run_id: result.structuredContent.run_id }))
+    assert.equal((await c.response(id++)).result.structuredContent.current_verdict, expected)
+  }
+  fs.writeFileSync(archive, '{broken')
+  c.send(call(id, 'veriscope_gate_check', { archive_path: archive, policy_path: policy, format: 'ragas-records-v1' }))
+  const bad = (await c.response(id++)).result
+  assert.equal(bad.structuredContent.status, 'REVIEW'); assert.equal(bad.isError, true); assert.equal(bad.structuredContent.execution.executed, false)
+  c.send(call(id, 'veriscope_gate_list', {}))
+  const list = (await c.response(id)).result
+  assert.equal(list.structuredContent.returned, 3); assert.equal(list.isError, false)
 })
 
 test('tool argument validation rejects forged session, wrong types, unknown fields and out of range thresholds before side effects', async t => {

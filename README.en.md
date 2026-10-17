@@ -4,21 +4,42 @@
 
 > This page is a translation of the Chinese original. If the two ever disagree, the Chinese original is authoritative.
 
-> **Upgrading to 0.4.0**: existing receipts become REVIEW for current validity; historical PASS/FAIL verdicts are not rewritten. Back up the complete state directory and original archives before upgrading, and use a persistent state directory outside the plugin. Package-local `.local` may be lost on reinstall; exporting a receipt is not a complete backup. Replay again to obtain a receipt for the new version.
+> **Upgrading to the 0.5.0 local candidate**: existing receipts become REVIEW for current validity; historical PASS/FAIL verdicts are not rewritten. Back up the complete state directory and original archives before upgrading, and use a persistent state directory outside the plugin. Package-local `.local` may be lost on reinstall; exporting a receipt is not a complete backup. Replay again to obtain a receipt for the new version.
 
-Connects an existing VeriScope evaluation JSON to DSH, invokes the original Python Quality Gate, and returns **pass / fail / needs review**, plus current receipt validity and sources.
+Check existing scores with a standalone Node threshold gate, or replay VeriScope archives with the original Python Quality Gate. Both return **PASS / FAIL / REVIEW** and verifiable local receipts.
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee mirror (manually synchronized)](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · Full VeriScope: [main repo](https://github.com/4444wjt/RAG_Evaluation_Demo) / [mirror](https://gitee.com/kkbushishou/rag-hallucination-evaluator). Issues and PRs go to GitHub.
 
-Python is the only numeric judge. REVIEW never becomes PASS, and a confirmed FAIL is never masked by additional anomalies. PASS only means the archived metrics passed the bound gate; it does not prove any answer is factually correct. The plugin does not re-evaluate, does not modify archives, and performs no publish or Git operations.
+Python remains the numeric judge for replay; B2 uses the separate `builtin-threshold-v1` engine with a distinct policy. REVIEW never becomes PASS, and a confirmed FAIL is never masked by additional anomalies. PASS only means the archived metrics passed the bound gate; it does not prove any answer is factually correct. The plugin does not re-evaluate, does not modify archives, and performs no publish or Git operations.
 
 ---
 
-The plugin re-checks existing VeriScope evaluation archives without optimizing prompts or rewriting answers. It invokes the original Python Quality Gate, records the inputs, thresholds and execution environment used for the verdict, and checks whether the receipt is currently valid. PASS means only that the archived metrics satisfy the bound gate conditions; it does not replace a complete release review.
+The legacy VeriScope instructions below apply to replay. B2 input, judgments and receipts follow the separate section above.
 
-Currently the accepted input is the VeriScope archive format. A generic archive format and adapters are not yet available. Unsupported formats are rejected; nothing is guessed or converted.
+Accepts the original VeriScope archives plus B2 GateArchiveV1 and the specified Ragas records layout. Unsupported formats are rejected, not guessed or converted.
 
-## 30-second start after setup
+## Use existing scores directly: B2 (0.5.0 local candidate)
+
+Already have Ragas scores? Export the score JSON, specify the metrics and thresholds, and let the plugin check the gate and save a receipt. **No VeriScope installation and no new model scoring calls.**
+
+Only Node ≥22.19 is required. Set an explicit, writable, persistent `VERISCOPE_STATE_DIR` before starting the host. There is no settings UI and `.env` is not read. B2 does not use VeriScope/Python paths.
+
+> Use `veriscope_gate_check` for `D:\data\scores.json` with policy `D:\data\policy.json` and format `ragas-records-v1`; explain the verdict.
+
+```powershell
+$env:VERISCOPE_STATE_DIR = 'D:\your-data\veriscope-state'
+node scripts/check.mjs --archive examples/builtin/ragas-records.json --policy examples/builtin/policy.json --format ragas-records-v1 --json
+```
+
+- Accepts `GateArchiveV1` or the Ragas `result.to_pandas().to_json(orient="records")` layout, with explicit `GatePolicyV1`; no field or threshold guessing.
+- Uses an equally weighted mean of all provided rows. Missing values are neither filled nor skipped. Any complete failing metric yields FAIL; otherwise incomplete evidence yields REVIEW; all required metrics must be complete and passing for PASS.
+- Never renames `faithfulness` to `pos_faithfulness`. A B2 PASS is not the original gate verdict, does not establish factual correctness or score authenticity, and cannot reveal rows removed before export.
+- DSH/MCP expose check; the installed CLI is `veriscope-check`. `doctor({engine:"builtin"})` does not probe Python. status/list handle both receipt versions.
+- B2 uses ReceiptV2 and text only, without bind/complete. DSH JSON/Markdown export works; B2 share is unsupported. Records are kept indefinitely with no automatic cleanup.
+
+See packaged `docs/B2.md`, `schemas/` and `examples/builtin/`. Examples are constructed from documentation, not real evaluations. Version 0.5.0 is unpublished; candidate evidence is in `docs/acceptance-b2-v0.5.0.json`. Earlier host/Ubuntu results do not verify this candidate.
+
+## Original VeriScope path: quick start
 
 After configuring the environment (next section), type these in DSH:
 
@@ -44,7 +65,7 @@ To constrain task completion, bind the current check to a task. Only a bound rec
 
 ## Install and configure
 
-This document covers **0.4.0**, with a DSH plugin and the independent `veriscope-mcp` entry. Check the [npm package page](https://www.npmjs.com/package/dsh-plugin-veriscope) for available releases; MCP setup and pending checks are described below. The verified DSH CLI requires an explicit profile; these examples use the isolated `veriscope-demo` profile:
+This document covers the **0.5.0 local candidate**, with a DSH plugin and the independent `veriscope-mcp` entry. Check the [npm package page](https://www.npmjs.com/package/dsh-plugin-veriscope) for available releases; MCP setup and pending checks are described below. The verified DSH CLI requires an explicit profile; these examples use the isolated `veriscope-demo` profile:
 
 ```powershell
 # install
@@ -61,7 +82,7 @@ For local development or customization, install from a local directory instead:
 dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
 ```
 
-Replace the path with the real source location. Do not treat a directory or link install as evidence of a registry install. **A successful install is not a passing gate**: first use still requires `VERISCOPE_ROOT` and `VERISCOPE_PYTHON` plus a doctor run. The npm package excludes tests and `docs`; `npm test` is for source development only, and `node scripts/verify-replay.mjs` only works in the full source repository with its verification material present — neither is an installed capability. See the repository for full documentation.
+Replace the path with the real source location. Do not treat a directory or link install as evidence of a registry install. **A successful install is not a passing gate**: first use of legacy replay requires `VERISCOPE_ROOT`, `VERISCOPE_PYTHON` and a doctor run; B2 only requires the state root. The npm package excludes tests; it includes `docs/B2.md`, schemas and B2 examples, with other documentation in the repository; `npm test` is for source development only, and `node scripts/verify-replay.mjs` only works in the full source repository with its verification material present — neither is an installed capability. See the repository for full documentation.
 
 Historical 0.3.x verification: Windows with DSH NEXT 2.0.18-next and internal DSH / tools / skill **0.2.1-alpha.2**. Node ≥22.19. Other host versions are unverified. Upstream plus Python / pandas compatibility is also required; pinned dependencies are in [upstream notes](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/UPSTREAM.md). The plugin does not bundle the full upstream or any business archive.
 
@@ -75,7 +96,7 @@ The DSH entry requires `@deepseek-ai/dsh-tools` version `0.2.1-alpha.2`, checks 
 |---|---|---|
 | `veriscopeRoot` | `VERISCOPE_ROOT` | Windows default: `D:\RAG_Evaluation_Demo`; required explicitly on POSIX |
 | `pythonPath` | `VERISCOPE_PYTHON` | Probes `.venv` / `venv`: `Scripts/python.exe` on Windows, `bin/python` on POSIX; never falls back to PATH |
-| state root | `VERISCOPE_STATE_DIR` | DSH defaults to `<plugin dir>/.local`; use a persistent directory. MCP requires an explicit value |
+| state root | `VERISCOPE_STATE_DIR` | Legacy DSH replay defaults to `<plugin dir>/.local`; B2 and all MCP tools require an explicit persistent directory |
 | reminder mode | cordis patch `completionMode` | `off`; only `off` or `remind`; anything else is an error |
 
 Explicit values for all three environment variables must be non-empty absolute paths; invalid values never fall back silently. Set them **in the same terminal that starts DSH**, then start or fully restart the host. The last line below is an alternative to the npm install above, for installation from GitHub; skip it if the plugin is already installed:
@@ -97,17 +118,20 @@ Prepare a dedicated profile and the matching host CLI first; the install command
 
 `off` disables turn-stop reminders; all tools remain available. `remind` only reminds about unfinished bound tasks and does not promise a global block on ordinary chat. Paths cannot be written into this config.
 
-## Cross-host MCP (0.4.0)
+## Cross-host MCP
 
-Actual tool calls were verified in isolated Claude Code and Codex host control runtimes without model conversations. Real replay passed on Windows and Ubuntu. Claude returns tool errors as text through its control API; complete structured error delivery remains unverified. Start source `mcp.js` with an absolute Node path; see [MCP setup](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md) for configuration and isolated examples. It does not load the DSH SDK. The first MCP adapter exposes only `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, and `veriscope_gate_list`, with no native result card. batch/export and bind/complete remain DSH-only. Session bindings are not ported; MCP reports have `execution.session_id: null`.
+0.5.0 adds check, bringing MCP to five tools. Current Windows host calls and pending items are recorded in `docs/acceptance-b2-v0.5.0.json`; Ubuntu was not run this round. The following paragraph is historical 0.4.0 evidence.
 
-All four MCP tools require an explicit, valid `VERISCOPE_STATE_DIR`; a missing value returns REVIEW without falling back to the package directory. doctor writes and removes a temporary probe; replay writes reports and receipts. Neither is read-only; status/list are read-only. A business FAIL is not a tool execution error. Host tool calls, real Linux replay, and version checks are recorded separately in [acceptance evidence](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json); registration or a custom client passing does not establish host acceptance.
+For 0.4.0, actual tool calls were verified in isolated Claude Code and Codex host control runtimes without model conversations. Real replay passed on Windows and Ubuntu. Claude returns tool errors as text through its control API; complete structured error delivery remains unverified. Start source `mcp.js` with an absolute Node path; see [MCP setup](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md) for configuration and isolated examples. It does not load the DSH SDK. The first MCP adapter exposes only `veriscope_doctor`, `veriscope_gate_replay`, `veriscope_gate_status`, and `veriscope_gate_list`, with no native result card. batch/export and bind/complete remain DSH-only. Session bindings are not ported; MCP reports have `execution.session_id: null`.
 
-## The eight tools
+All five current MCP tools require an explicit, valid `VERISCOPE_STATE_DIR`; a missing value returns REVIEW without falling back to the package directory. doctor writes and removes a temporary probe; replay writes reports and receipts. Neither is read-only; the added check also writes records. status/list are read-only. A business FAIL is not a tool execution error. Host tool calls, real Linux replay, and version checks are recorded separately in [acceptance evidence](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/acceptance-mcp-v0.4.0.json); registration or a custom client passing does not establish host acceptance.
+
+## The nine tools
 
 | Tool | Purpose |
 |---|---|
-| `veriscope_doctor({})` | Checks paths, script contract, Python / pandas, state-root writability and recent receipts; returns environment-ready or needs-review plus fix suggestions |
+| `veriscope_gate_check({archive_path, policy_path, format?})` | Node-only threshold gate on existing row scores; produces ReceiptV2 without Python |
+| `veriscope_doctor({engine?})` | Checks the legacy replay environment by default; `engine:"builtin"` checks only Node and the explicit state root, with fix suggestions |
 | `veriscope_gate_replay({result_path, baseline?, faith?, ctx?})` | Actually runs the gate on an existing archive, saves an independent record, and produces ReceiptV1 when eligible |
 | `veriscope_gate_status({run_id, faith?, ctx?, baseline_run_id?})` | Read-only check of receipt validity; no replay, no scoring, no new receipt |
 | `veriscope_gate_list({limit?})` | Lists the 50 most recent by default (1–200 allowed); reuses status per item and lists damaged records separately |
@@ -118,12 +142,12 @@ All four MCP tools require an explicit, valid `VERISCOPE_STATE_DIR`; a missing v
 
 ### Parameters and rules
 
-- Thresholds default to 0.8, must be finite values in 0–1, and are never automatically lowered to obtain PASS.
+- Legacy replay thresholds default to 0.8, must be finite values in 0–1, and are never automatically lowered to obtain PASS.
 - Archive-relative paths resolve against `VERISCOPE_ROOT`.
 - For `baseline_run_id`, omission keeps the original baseline, `null` requires no baseline, and a UUID references a valid receipt in the current state root.
 - `task_id` is 1–80 characters of letters, digits, underscore, dot or hyphen; the session identity cannot be forged through tool parameters. Bindings live in memory only, must be re-bound after restart, and completion records on disk do not restore authorization.
 
-Use status to "check validity" and replay to "run the gate again". Only an actual replay produces a receipt. When input, baseline, policy, upstream, plugin or environment change, the old receipt moves to needs-review while historical failures are preserved. See [receipt protocol](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md).
+Use status to "check validity" and replay to "run the gate again". ReceiptV1 requires an actual replay; ReceiptV2 requires an actual B2 check. When input, baseline, policy, upstream, plugin or environment change, the old receipt moves to needs-review while historical failures are preserved. See [receipt protocol](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/RECEIPTS.md).
 
 Version 0.4.0 accepts either the original audited contract or the LF contract audited from public commit `1b89bcabb83e1b123039799516596fdcfd393d42`. An entire contract must match original bytes: no per-file mixing or runtime normalization. Receipt hashes now cover the MCP entry, shared catalog, and contract selector. Upgrades make old receipts currently REVIEW while preserving their historical records.
 
@@ -156,7 +180,9 @@ When JSON is rejected, `execution.errors[].diagnostic` gives a confirmable detec
 
 status `changes` explains only the fixed binding fields between the original receipt and the current capture, at most 20 items with truncation marked. `COMPLETE` means only that the listed scope was verified; no change does not prove factual correctness. `UNVERIFIED` means part or all could not be verified, and confirmed changes are still listed. A contract-check failure keeps the original rejection path; everything else stays unverified — the check is not bypassed to fabricate a comparison, and score changes are not attributed from it.
 
-## Native result card (DSH)
+## Native result card (legacy DSH replay)
+
+B2 status uses Chinese text in the same area, without the legacy Python fields or refresh controls.
 
 Hosts supporting `tool.call.toolview` show a dark, gold-accented Chinese result card: current three-state verdict, next step, a "re-check" button and collapsible basis. The button only reads status; it cannot replay or register completion. Without a card interface, the Chinese tool text is kept.
 
@@ -166,7 +192,7 @@ The section also lists binding changes and unverified notes; when the original r
 
 Opening the card re-checks under the same explicit threshold/baseline policy and never displays a historical PASS directly; load failure, invalid policy, missing session binding or incomplete protocol all become needs-review. The display represents only the moment of that check, does not watch files continuously, and can be checked again before use. The native card offers no path settings panel.
 
-## Three states and decision rules
+## Legacy replay: three states and decision rules
 
 The plugin reads an existing evaluation result, runs the gate, and returns PASS, FAIL or REVIEW:
 
@@ -180,11 +206,11 @@ After a confirmed FAIL, the core FAIL is preserved even if writing the receipt f
 
 ## Output and data boundaries
 
-Records live in `<state root>/runs/<run_id>/` and contain `report.json`, stdout, stderr and, when eligible, `receipt.json`; completion registrations are stored separately under `completions/`. Appended records never overwrite failures. Logs may contain archive fragments and local paths — redact before sharing. The plugin uploads no archives and prints no full environment.
+Legacy replay records live in `<state root>/runs/<run_id>/` and contain `report.json`, stdout, stderr and, when eligible, `receipt.json`; completion registrations are stored separately under `completions/`. B2 instead stores report, original input, policy, normalized data and ReceiptV2, with no fake stdout/stderr. Appended records never overwrite failures. Logs may contain archive fragments and local paths — redact before sharing. The plugin uploads no archives and prints no full environment.
 
 Records are retained indefinitely by default; there is no automatic cleanup. With an explicit `VERISCOPE_STATE_DIR`, `node scripts/prune.mjs --dry-run --json` only previews file inventory, logical byte counts, and recorded relationships. It neither verifies those relationships nor offers deletion. Keep persistent state outside the plugin directory before uninstalling or reinstalling.
 
-Input is limited to 10 MiB, stdout / stderr to 2 MiB each, replay to 120 seconds and each environment probe to 10 seconds. status reads and hashes files and starts Python to read versions and pandas metadata; it runs neither the evaluation model nor the gate script. Hashes do not prove semantic correctness, and a user who can rewrite the whole state root is out of scope; changes after a check are only found by checking again.
+Input is limited to 10 MiB, stdout / stderr to 2 MiB each, replay to 120 seconds and each environment probe to 10 seconds. ReceiptV1 status reads and hashes files and starts Python to read versions and pandas metadata; it runs neither the evaluation model nor the gate script. Hashes do not prove semantic correctness, and a user who can rewrite the whole state root is out of scope; changes after a check are only found by checking again.
 
 The historical trace only verifies literal source positions and is labelled `historical_ai`; it is not a new semantic check. The core makes zero new evaluation-model calls, though host conversation may still cost tokens. No claim of algorithmic originality or end-to-end cost reduction is made.
 

@@ -6,6 +6,7 @@ window.__ModuleLoader__.load({
     const css = `.vscope-card{font:15px/1.65 "Microsoft YaHei",system-ui,sans-serif;color:#ede9e0;background:#171918;border:1px solid #53554e;border-radius:14px;padding:24px;margin:12px 0;max-width:740px;overflow-wrap:anywhere}.vscope-card *{box-sizing:border-box}.vscope-card h3{font-size:20px;margin:0 0 8px;font-weight:700}.vscope-card p{margin:8px 0 18px;color:#d8d4c9}.vscope-card .vscope-status{font-size:24px;font-weight:700;display:flex;align-items:center;gap:10px}.vscope-dot{width:9px;height:9px;background:currentColor;border-radius:50%;display:inline-block}.vscope-card button,.vscope-card summary{font:inherit;cursor:pointer}.vscope-card button{border:1px solid #f2c879;background:#f2c879;color:#21211b;border-radius:8px;padding:8px 18px;font-weight:600}.vscope-card button:hover{background:#ffdc9e}.vscope-card button:disabled{opacity:.65;cursor:wait}.vscope-card button:focus-visible,.vscope-card summary:focus-visible{outline:2px solid #f2c879;outline-offset:4px}.vscope-card details{margin-top:20px;border-top:1px solid #53554e;padding-top:14px}.vscope-card summary{color:#f2c879}.vscope-card dl{margin:12px 0}.vscope-card dt{font-weight:600;margin-top:12px}.vscope-card dd{margin:2px 0;color:#d8d4c9}.vscope-card time{display:block;font-size:12px;color:#d8d4c9;margin-top:12px}.vscope-card ::selection{background:#f2c879;color:#171918}`
     function Card({ block }) {
       const meta = block?.meta?.veriscope, runId = meta?.run_id, sessionId = meta?.session_id
+      const builtin = meta?.engine_id === 'builtin-threshold-v1'
       const policy = meta && Object.hasOwn(meta, 'policy') ? meta.policy : {}
       const validPolicy = policy && typeof policy === 'object' && !Array.isArray(policy) && Object.keys(policy).every(key => ['faith', 'ctx', 'baseline_run_id'].includes(key)) &&
         ['faith', 'ctx'].every(key => !Object.hasOwn(policy, key) || typeof policy[key] === 'number' && Number.isFinite(policy[key]) && policy[key] >= 0 && policy[key] <= 1) &&
@@ -17,6 +18,7 @@ window.__ModuleLoader__.load({
         const seq = ++sequence.current
         abort.current?.abort(); abort.current = new AbortController()
         setValue(null); setLoading(true); setError('')
+        if (builtin) { setLoading(false); return }
         if (!runId || !sessionId) { setError('尚无本会话回执，请先调用状态工具。'); setLoading(false); return }
         if (!validPolicy) { setError('门禁策略不完整，请调用状态工具核实。'); setLoading(false); return }
         try {
@@ -27,7 +29,7 @@ window.__ModuleLoader__.load({
           if (seq === sequence.current) setValue(next)
         } catch (caught) { if (seq === sequence.current && caught?.name !== 'AbortError') setError('无法确认当前状态，请重试或调用 veriscope_gate_status。') }
         finally { if (seq === sequence.current) setLoading(false) }
-      }, [runId, sessionId, policyKey])
+      }, [runId, sessionId, policyKey, builtin])
       React.useEffect(() => { refresh(); return () => { ++sequence.current; abort.current?.abort() } }, [refresh])
       const status = value?.current_verdict ?? 'REVIEW'
       const tone = status === 'PASS' ? '#9dd7b7' : status === 'FAIL' ? '#ffb2a9' : '#f2c879'
@@ -42,6 +44,10 @@ window.__ModuleLoader__.load({
         : `部分或全部绑定项未核实，请结合检查原因处理。${changes?.total > 0 ? `已确认 ${number(changes.total)} 项变化${changes.truncated ? '，仅显示前 20 项' : ''}。` : ''}`
       const inputDiagnostic = meta?.input_diagnostic
       const hasInputDiagnostic = Number.isInteger(inputDiagnostic?.line) && inputDiagnostic.line > 0 && Number.isInteger(inputDiagnostic?.column) && inputDiagnostic.column > 0
+      if (builtin) return h('pre', { 'data-veriscope-mode': 'builtin-text', style: {
+        font: '15px/1.75 "Microsoft YaHei",system-ui,sans-serif', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere',
+        color: '#ede9e0', background: '#171918', borderLeft: '3px solid #F2C879', padding: '16px 20px', margin: '12px 0',
+      } }, typeof meta.builtin_text === 'string' ? meta.builtin_text : '请使用文本工具核实独立阈值门禁。')
       return h('section', { className: 'vscope-card', 'aria-label': 'VeriScope 门禁回执', 'data-veriscope-status': status },
         h('style', null, css), h('h3', null, '门禁回执'),
         h('div', { className: 'vscope-status', style: { color: tone }, role: 'status', 'aria-live': 'polite' }, h('span', { className: 'vscope-dot', 'aria-hidden': true }), loading ? '正在检查' : labels[status]),

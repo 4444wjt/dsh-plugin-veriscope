@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import assert from 'node:assert/strict'
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url))
+const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version
 export function verdictProjection(report) {
   return { status: report.status, gate_passed: report.gate_passed, exit_code: report.exit_code,
     thresholds: report.thresholds, metrics: report.metrics, archived_gate: report.archived_gate,
@@ -56,11 +57,11 @@ export async function verifyMcp(env = process.env) {
   }
   const records = []
   try {
-    const initialization = await request('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'veriscope-real-python-verification', version: '0.4.0' } })
+    const initialization = await request('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'veriscope-real-python-verification', version: VERSION } })
     assert.equal(initialization.protocolVersion, '2025-11-25')
     child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n')
     const listing = await request('tools/list', {})
-    assert.deepEqual(listing.tools.map(tool => tool.name).sort(), ['veriscope_doctor', 'veriscope_gate_replay', 'veriscope_gate_status', 'veriscope_gate_list'].sort())
+    assert.deepEqual(listing.tools.map(tool => tool.name).sort(), ['veriscope_doctor', 'veriscope_gate_replay', 'veriscope_gate_status', 'veriscope_gate_list', 'veriscope_gate_check'].sort())
     const doctor = await request('tools/call', { name: 'veriscope_doctor', arguments: {} })
     assert.equal(doctor.structuredContent.status, 'READY', JSON.stringify(doctor.structuredContent))
     const cases = [ ['boundary', path.join(ROOT, 'tests/fixtures/boundary.json'), 'PASS', 'constructed'],
@@ -80,7 +81,7 @@ export async function verifyMcp(env = process.env) {
     }
     const recent = await request('tools/call', { name: 'veriscope_gate_list', arguments: { limit: 20 } })
     assert.ok(recent.structuredContent.returned >= cases.length)
-    const result = { passed: true, version: '0.4.0', node: process.version, verification_type: 'stdio_client_with_real_python_not_host_acceptance',
+    const result = { passed: true, version: VERSION, node: process.version, verification_type: 'stdio_client_with_real_python_not_host_acceptance',
       tools: listing.tools.map(({ name, annotations }) => ({ name, annotations })), protocol_version: initialization.protocolVersion,
       three_states: records.slice(0, 3).map(record => record.report.status), records,
       new_evaluation_model_calls: 0, conversation_model_calls: 0 }

@@ -26,8 +26,11 @@ export function apply(ctx, rawConfig = {}) {
     if (value.schema_version !== '1.0') value.session_id = sessionId
     return value
   }
-  const presentationMeta = (args, value) => {
+  const presentationMeta = (args, value, render) => {
     const current = value.schema_version === 'GateStatusV1' ? value : value.status?.schema_version === 'GateStatusV1' ? value.status : null
+    if (value.engine?.id === 'builtin-threshold-v1' || current?.engine?.id === 'builtin-threshold-v1') return {
+      veriscope: { engine_id: 'builtin-threshold-v1', builtin_text: render(value) },
+    }
     const inputError = value.execution?.errors?.find(item => item.diagnostic)
     const diagnostic = inputError?.diagnostic
     return { veriscope: {
@@ -44,7 +47,7 @@ export function apply(ctx, rawConfig = {}) {
     if (skills && typeof skills.register === 'function') disposers.push(skills.register({ name, description: '离线重放鉴真全域 VeriScope AI 归档门禁，保留失败、待复核和来源。', content: readFileSync(skillPath, 'utf8'), source: 'runtime', provider: name }))
     for (const tool of catalog.tools) disposers.push(ctx.tools.register(defineTool({
       name: tool.name, description: tool.description, parameters: toolParameters(tool.inputSchema),
-      output: { schema: toValueSpec(tool.outputSchema), ...(tool.presentation === 'gate' ? { presentationMeta } : {}),
+      output: { schema: toValueSpec(tool.outputSchema), ...(tool.presentation === 'gate' ? { presentationMeta: (args, value) => presentationMeta(args, value, tool.render) } : {}),
         render: (_args, value) => [{ type: 'text', text: tool.render(value) }] },
       execute: async (args, execution) => {
         const value = await tool.call(args, { signal: signal(execution), sessionId: sessionIdentity(execution), execution })

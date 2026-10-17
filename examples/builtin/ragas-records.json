@@ -1,0 +1,4 @@
+[
+  { "user_input": "构造问题一", "response": "构造回答一", "retrieved_contexts": ["构造材料"], "faithfulness": 0.9 },
+  { "user_input": "构造问题二", "response": "构造回答二", "retrieved_contexts": ["构造材料"], "faithfulness": 0.9 }
+]

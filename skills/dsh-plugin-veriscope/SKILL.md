@@ -3,6 +3,10 @@ name: dsh-plugin-veriscope
 description: 离线重放鉴真全域 VeriScope AI 已归档的质量门禁，保留失败、待复核及来源。
 ---
 
+用户提供已有逐条评分（GateArchiveV1 或指定 Ragas records JSON）时，使用 `veriscope_gate_check({archive_path,policy_path,format?})`。必须先确定显式 GatePolicyV1 策略，不自动设置阈值、重命名列、筛选正样本或跳过缺失值。Ragas 要显式指定 `ragas-records-v1`，不将 faithfulness 改为 pos_faithfulness。B2 全部入口必须显式配置 VERISCOPE_STATE_DIR，不用 Python；体检用 `veriscope_doctor({engine:"builtin"})`。check 产生 ReceiptV2；status/list 按回执版本查询。B2 只显示文本，不用于 bind/complete；JSON/Markdown 可本地导出，share 暂不支持。PASS 不证明评分真实、回答事实正确或导出前样本完整；不得称 B2 为原 Python 门禁的同等判定。
+
+以下说明适用于原 VeriScope replay／ReceiptV1 路径；不要把原阈值、正样本口径或 Python 配置用于 B2：
+
 首次使用、路径配置、Python／pandas 或回执故障时，先调用 `veriscope_doctor({})`。READY 只代表环境就绪，不是门禁 PASS。说明异常和可复制的修复建议，不自动安装依赖或改配置。原因码用中文解释，未知码保留原码并标“未收录”。
 
 用户不知道运行编号时，使用 `veriscope_gate_list({limit})` 查最近回执，明确区分历史裁决和当前有效性；损坏或缺失记录不隐藏。多份已有归档用 `veriscope_gate_batch({paths})` 或 `{dir}`，顺序执行，允许取消，目录不递归。每份分别记录，已确认 FAIL 优先；错误不算 PASS，取消或未处理范围明确列出。不要为凑 PASS 改阈值。

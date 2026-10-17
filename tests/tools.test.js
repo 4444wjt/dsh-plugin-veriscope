@@ -30,11 +30,11 @@ function host({ failAfter = Infinity } = {}) {
   } }
 }
 
-test('the shared catalog exposes eight tools with a four-tool MCP subset and truthful write annotations', () => {
+test('the shared catalog exposes nine tools with a five-tool MCP subset and truthful write annotations', () => {
   const catalog = createToolCatalog({ env: {} })
   const names = catalog.tools.map(tool => tool.name)
-  assert.equal(new Set(names).size, 8)
-  assert.deepEqual(MCP_TOOL_NAMES, ['veriscope_doctor', 'veriscope_gate_replay', 'veriscope_gate_status', 'veriscope_gate_list'])
+  assert.equal(new Set(names).size, 9)
+  assert.deepEqual(MCP_TOOL_NAMES, ['veriscope_doctor', 'veriscope_gate_replay', 'veriscope_gate_status', 'veriscope_gate_list', 'veriscope_gate_check'])
   for (const tool of catalog.tools) {
     assert.equal(tool.inputSchema.type, 'object')
     assert.equal(tool.inputSchema.additionalProperties, false)
