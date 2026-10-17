@@ -1,0 +1,70 @@
+{
+  "version": "0.3.1",
+  "scope": "Local implementation and verification; not a public release record",
+  "verified_at_utc": "2026-10-17T06:59:07.337994+00:00",
+  "unit_tests": {
+    "total": 202,
+    "passed": 202,
+    "original": 121,
+    "added": 81,
+    "original_test_files_unchanged": true,
+    "log_sha256": "45e68625903a5d7e0b086b11dc2baec27a0d96e6d319aa357e28bfc2d3fdb5b5",
+    "node": "v24.21.0"
+  },
+  "parser_compatibility": {
+    "cases": 1928,
+    "mismatches": 0,
+    "scope": "Bounded acceptance/value comparison against frozen 0.3.0 parser; not exhaustive proof"
+  },
+  "host": {
+    "carrier": "DSH NEXT 2.0.18-next",
+    "node": "v24.18.1",
+    "sdk": "0.2.1-alpha.2",
+    "tools": 8,
+    "calls_per_validation": 25,
+    "process_starts": 2,
+    "installation": "Local source copy in isolated profile with cached SDK; no remote installation claim",
+    "runtime_files_byte_checked": 32,
+    "three_states": [
+      "PASS",
+      "FAIL",
+      "REVIEW"
+    ],
+    "json_byte_identical": true,
+    "share_summary_non_receipt": true,
+    "diagnostic_text_and_meta": true,
+    "query_policy_preserved_in_native_refresh": true,
+    "mtime_invariant_change_detected": true,
+    "managed_bind_complete": true,
+    "conversation_model_calls": 0,
+    "new_evaluation_model_calls": 0,
+    "synthetic_session_turns_per_validation": 1
+  },
+  "native_card": {
+    "available": true,
+    "body_px": 15,
+    "gold": "#F2C879",
+    "policy_card_review": true,
+    "change_visible": true,
+    "original_diagnostic_visible": true,
+    "horizontal_overflow": false,
+    "screenshot_sha256": "ba237433cc5a8bb808bf6999ef662653fe3b60b1c66f36f2421680162dd57a1d"
+  },
+  "isolation": {
+    "upstream_files": 14,
+    "upstream_hashes_unchanged": true,
+    "upstream_status_unchanged": true,
+    "upstream_refs_unchanged": true,
+    "upstream_head_unchanged": true,
+    "default_profile_files_unchanged": true,
+    "original_test_files_unchanged": true
+  },
+  "correction_retained": "Initial real native-card check found that explicit query policy was dropped on refresh. Fixed metadata/request preservation, added HTTP and card regressions, repeated host and native verification. First-pass evidence retained privately.",
+  "limits": [
+    "No factual-correctness benchmark or user adoption measurement",
+    "No claim of originality or token/cost savings",
+    "No conversation model automatic tool-selection test",
+    "No new remote install/uninstall verification in this iteration",
+    "No Git writes, remote publication, tag, Release or npm publication"
+  ]
+}

@@ -7,9 +7,11 @@ description: 离线重放鉴真全域 VeriScope AI 已归档的质量门禁，�
 
 用户不知道运行编号时，使用 `veriscope_gate_list({limit})` 查最近回执，明确区分历史裁决和当前有效性；损坏或缺失记录不隐藏。多份已有归档用 `veriscope_gate_batch({paths})` 或 `{dir}`，顺序执行，允许取消，目录不递归。每份分别记录，已确认 FAIL 优先；错误不算 PASS，取消或未处理范围明确列出。不要为凑 PASS 改阈值。
 
-用户要求保存或分享报告时，调用 `veriscope_gate_export({run_id,format:"md"})`，多份用 `run_ids`。JSON 是历史原回执（单条逐字节保留），不能拿历史 PASS 代替当前有效性；当前状态另见返回的 current。只写状态根 exports，不接受自定义输出路径，不覆盖已有文件。损坏回执不导出为可用报告。
+用户要求分享、求助或发给维护者时，优先调用 `veriscope_gate_export({run_id,format:"share"})`，多份用 `run_ids`。这是固定字段的本地求助摘要，非回执，不能用于 bind/complete。让用户预览文件正文或 share_summary 后自行分享，不自动上传；整个工具返回仍含本地文件位置，不能宣称完整工具消息已脱敏。摘要保留的指标也可能敏感，不保证识别全部秘密。用户要完整本地报告才用 `format:"md"`；`format:"json"` 是历史原回执（单条逐字节保留），不能拿历史 PASS 代替当前有效性；当前状态另见返回的 current。只写状态根 exports，不接受自定义输出路径，不覆盖已有文件。损坏回执不导出为可用报告。
 
 检查已有回执是否仍有效时，调用 `veriscope_gate_status({run_id})`，不要为查询状态重新重放。用户要求重新执行已有评测 JSON 的 Quality Gate 时，调用 `veriscope_gate_replay`。先确定 `result_path`；只有用户要求回归对比才传 `baseline`。阈值默认均为 0.8，用户未要求时不为得到 PASS 而修改。
+
+status 的 changes 仅解释原回执与本次已捕获绑定项的差异，不是两次评测效果对比，也不证明输入语义改变。未核实项保持未知；契约或读取失败不能绕过检查列假对照。环境仅称回放环境。JSON 错误的 diagnostic 是发现异常的位置，行列从 1 开始、按解码后 UTF-16 计数；不一定是唯一修改点，不自动改归档或重试。
 
 - PASS / `true`：已核验 Python 重放通过，输入与来源完整；只说明归档指标过门，不证明每条回答真实。
 - FAIL / `false`：Python 确认门禁拦截。即使附加记录或解析异常，也必须保留已知 FAIL。

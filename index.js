@@ -34,12 +34,17 @@ export function apply(ctx, rawConfig = {}) {
     if (value.schema_version !== '1.0') value.session_id = sessionId
     return value
   }
-  const presentationMeta = (_args, value) => {
+  const presentationMeta = (args, value) => {
     const current = value.schema_version === 'GateStatusV1' ? value : value.status?.schema_version === 'GateStatusV1' ? value.status : null
+    const inputError = value.execution?.errors?.find(item => item.diagnostic)
+    const diagnostic = inputError?.diagnostic
     return { veriscope: {
       run_id: current?.run_id ?? value.run_id ?? null, session_id: value.session_id ?? value.execution?.session_id ?? null,
       historical_verdict: current?.historical_verdict ?? value.status ?? 'unknown',
       recorded_status: current?.current_verdict ?? 'REVIEW', checked_at_utc: current?.checked_at_utc ?? null,
+      policy: Object.fromEntries(['faith', 'ctx', 'baseline_run_id'].filter(key => Object.hasOwn(args ?? {}, key)).map(key => [key, args[key]])),
+      ...(diagnostic && Number.isInteger(diagnostic.line) && diagnostic.line > 0 && Number.isInteger(diagnostic.column) && diagnostic.column > 0
+        ? { input_diagnostic: { line: diagnostic.line, column: diagnostic.column, source: inputError.diagnostic_source === 'baseline' ? 'baseline' : 'input' } } : {}),
     } }
   }
   try {
@@ -70,7 +75,7 @@ export function apply(ctx, rawConfig = {}) {
       { name: 'veriscope_doctor', description: '检查本机 VeriScope、Python、pandas、契约、状态根与最近回执；环境就绪不代表门禁通过。', parameters: {}, call: (args, execution) => createDoctorService().doctor(args, { signal: signal(execution) }), render: renderDoctor },
       { name: 'veriscope_gate_list', description: '只读列出近期回执，逐条检查当前有效性，保留损坏记录。', parameters: { limit: { type: 'integer', description: '默认 50，允许 1–200。' } }, call: (args, execution) => createListService({ statusService }).list(args, { signal: signal(execution) }), render: renderList },
       { name: 'veriscope_gate_batch', description: '按顺序重放多份已有归档，可取消；已确认 FAIL 优先，不重新评测。', parameters: { paths: { type: 'array', items: { type: 'string' }, description: '归档路径数组；与 dir 二选一，最多 200 份。' }, dir: { type: 'string', description: '只读取该目录直接包含的 JSON，不递归；与 paths 二选一。' }, faith: policyParameters.faith, ctx: policyParameters.ctx, baseline: { type: 'string', description: '可选基线路径，使用同一 Python 门禁。' } }, call: (args, execution) => createBatchService({ replayService: service }).batch(args, { signal: signal(execution), sessionId: sessionIdentity(execution) }), render: renderBatch },
-      { name: 'veriscope_gate_export', description: '将已有回执导出到状态根 exports；Markdown 区分历史裁决和当前有效性，JSON 保留原回执。不覆盖旧文件。', parameters: { run_id: { type: 'string', description: '一个运行 UUID；与 run_ids 二选一。' }, run_ids: { type: 'array', items: { type: 'string' }, description: '1–50 个运行 UUID。' }, format: { type: 'string', enum: ['md', 'json'], required: true } }, call: (args, execution) => createExportService({ statusService }).export(args, { signal: signal(execution) }), render: renderExport },
+      { name: 'veriscope_gate_export', description: '将已有记录导出到状态根 exports。share 为可预览白名单求助摘要，非回执；md 为完整报告，json 保留原回执。不上传、不覆盖旧文件。', parameters: { run_id: { type: 'string', description: '一个运行 UUID；与 run_ids 二选一。' }, run_ids: { type: 'array', items: { type: 'string' }, description: '1–50 个运行 UUID。' }, format: { type: 'string', enum: ['md', 'json', 'share'], required: true, description: '分享求助用 share；完整本地报告用 md，原回执用 json。share 文件为 Markdown，不能用于门禁放行。' } }, call: (args, execution) => createExportService({ statusService }).export(args, { signal: signal(execution) }), render: renderExport },
     ]
     for (const tool of utilityTools) disposers.push(ctx.tools.register(defineTool({ name: tool.name, description: tool.description, parameters: tool.parameters,
       output: { schema: utilitySchemaSpec, render: (_args, value) => [{ type: 'text', text: tool.render(value) }] },

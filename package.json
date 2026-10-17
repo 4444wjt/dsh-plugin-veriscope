@@ -1,8 +1,19 @@
 {
   "name": "dsh-plugin-veriscope",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
-  "description": "VeriScope 离线门禁重放 · DSH 插件",
+  "description": "Offline VeriScope Quality Gate replay for DeepSeek Harness (DSH).",
+  "author": {
+    "name": "4444wjt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/4444wjt/dsh-plugin-veriscope.git"
+  },
+  "bugs": {
+    "url": "https://github.com/4444wjt/dsh-plugin-veriscope/issues"
+  },
+  "homepage": "https://github.com/4444wjt/dsh-plugin-veriscope#readme",
   "type": "module",
   "main": "index.js",
   "files": [
@@ -27,7 +38,8 @@
   },
   "scripts": {
     "test": "node --test",
-    "replay": "node scripts/replay.mjs"
+    "replay": "node scripts/replay.mjs",
+    "verify:replay": "node scripts/verify-replay.mjs"
   },
   "keywords": [
     "deepseek-harness",
@@ -51,16 +63,5 @@
     ".": "./index.js",
     "./client": "./client.js",
     "./package.json": "./package.json"
-  },
-  "author": {
-    "name": "4444wjt"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/4444wjt/dsh-plugin-veriscope.git"
-  },
-  "bugs": {
-    "url": "https://github.com/4444wjt/dsh-plugin-veriscope/issues"
-  },
-  "homepage": "https://github.com/4444wjt/dsh-plugin-veriscope#readme"
+  }
 }

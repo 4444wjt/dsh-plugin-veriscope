@@ -1,6 +1,6 @@
 # VeriScope 离线门禁重放 · DSH 插件
 
-把已有 VeriScope 评测 JSON 接入 DSH，调用原 Python Quality Gate，返回**通过／失败／待复核**、当前回执有效性与来源。v0.3.0 增加环境体检、回执清单、批量重放和报告导出。
+把已有 VeriScope 评测 JSON 接入 DSH，调用原 Python Quality Gate，返回**通过／失败／待复核**、当前回执有效性与来源。v0.3.1 补充求助摘要、JSON 错误定位和绑定项变化说明。
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手动镜像](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · 完整 VeriScope：[主仓库](https://github.com/4444wjt/RAG_Evaluation_Demo)／[镜像](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue 和 PR 请提交到 GitHub。
 
@@ -26,11 +26,33 @@ Python 是唯一数值裁判；REVIEW 永不转为 PASS，已确认 FAIL 不被�
 
 > 检查上次的门禁结果现在是否仍然有效。
 
+三个常见的小场景：
+
+- **想发给维护者**：“把这次门禁失败整理成可分享的求助摘要。”使用 `format: "share"` 生成本地 Markdown，先预览、再自行分享；不是回执。
+- **归档打不开**：重放会在能确认时给出异常行列或字段位置，帮助定位；不会自动改文件。
+- **昨天通过、今天待复核**：状态检查会列出已确认的阈值、版本、输入摘要等变化；无法核实的范围明确保留。
+
 需要约束任务完成时，可以要求绑定本次检查；只有绑定的回执当前有效且为 PASS，才能登记完成。
 
 **使用前需配置 VeriScope 与 Python 路径。插件复查已有结果，不会重新调用评测模型；聊天中能否自动选中工具，取决于 DSH 的模型配置。**
 
 ## 安装与配置
+
+包名安装命令（**尚未发布到 npm，当前不可用**）：
+
+```powershell
+dsh plugin add dsh-plugin-veriscope
+```
+
+发布后可在独立 profile 安装，并用 `dsh plugin --profile veriscope-demo list` 查看已安装插件；卸载用 `dsh plugin --profile veriscope-demo remove dsh-plugin-veriscope`。准确版本读取该 profile 下 `node_modules/dsh-plugin-veriscope/package.json` 的 `version`。
+
+未发布版本或二次开发可走**本地目录安装**，与 npm 包名安装分开：
+
+```powershell
+dsh plugin --profile veriscope-demo add 'D:\your-workspace\dsh-plugin-veriscope'
+```
+
+以上目录路径须替换为源码实际位置；不要将目录／link 安装结果当成 registry 安装证明。**安装成功不等于门禁通过**，首次使用仍需配置 `VERISCOPE_ROOT` 与 `VERISCOPE_PYTHON` 并运行体检。npm 包不含测试与 `docs`；`npm test`／`verify:replay` 仅供源码开发，完整文档请查看仓库。
 
 已验证：Windows、DSH NEXT 2.0.18-next，内部 DSH／tools／skill **0.2.1-alpha.2**。Node ≥22.19；其他宿主版本未验证。另需兼容上游及 Python／pandas，固定依赖见 [上游说明](docs/UPSTREAM.md)。插件不附送完整上游或业务归档。
 
@@ -60,7 +82,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
     completionMode: "remind"
 ```
 
-`off` 关闭停止事件提醒，四个工具仍可使用。`remind` 只提醒未完成的绑定任务，不承诺普通聊天全局阻断。路径不能写入这个 config。
+`off` 关闭停止事件提醒，全部工具仍可使用。`remind` 只提醒未完成的绑定任务，不承诺普通聊天全局阻断。路径不能写入这个 config。
 
 ## 八个工具
 
@@ -71,7 +93,7 @@ dsh plugin --profile veriscope-demo add github:4444wjt/dsh-plugin-veriscope
 | `veriscope_gate_status({run_id, faith?, ctx?, baseline_run_id?})` | 只读检查回执当前有效性，不重放、不评分、不生成回执 |
 | `veriscope_gate_list({limit?})` | 默认列出最近 50 条，允许 1–200；逐条复用 status，损坏记录另列 |
 | `veriscope_gate_batch({paths?, dir?, baseline?, faith?, ctx?})` | 路径数组与目录二选一；顺序重放，最多 200 份，可取消，逐份留痕 |
-| `veriscope_gate_export({run_id?, run_ids?, format})` | 导出 1–50 条回执到状态根 `exports/`；支持 `md`／`json`，不覆盖旧文件 |
+| `veriscope_gate_export({run_id?, run_ids?, format})` | 导出 1–50 条记录到状态根 `exports/`；`share` 为白名单求助摘要，`md` 为完整报告，`json` 为原回执；不覆盖旧文件 |
 | `veriscope_gate_bind({task_id, run_id, faith?, ctx?, baseline_run_id?})` | 在宿主提供的本会话内绑定受管任务与当前回执 |
 | `veriscope_gate_complete({task_id, run_id})` | 复验本会话绑定，只在当前有效 PASS 下登记完成 |
 
@@ -90,11 +112,19 @@ veriscope_gate_batch({paths:["a.json","b.json","broken.json"]})
 → {status:"FAIL", counts:{pass:1, fail:1, review:0, error:1}, …}
 veriscope_gate_export({run_id:"实际运行 UUID", format:"md"})
 → {exported:true, path:"<状态根>/exports/<唯一文件名>.md", …}
+veriscope_gate_export({run_id:"实际运行 UUID", format:"share"})
+→ {exported:true, share_summary:{schema_version:"GateShareSummaryV1", is_receipt:false, …}, …}
 ```
 
 以上为字段示例，不是实测业务结果。批量**有 FAIL 就汇总为 FAIL**；没有 FAIL 但存在待复核、错误、取消或未处理项时为 REVIEW。目录只读直接包含的 JSON，不递归。错误不掩盖已确认失败，失败不阻止下一份重放。
 
 清单最多扫描 10,000 个目录项，超限明确待复核；`limit` 范围外的回执不做当前环境复验。坏回执时间不能可信读取时，排序使用目录修改时间并标明来源。导出单条 JSON 与原回执字节一致，多条为原回执对象数组；JSON 中历史 PASS 不代表当前有效，当前状态另见工具返回的 `current`。Markdown 同时列历史与当前状态、归档指标、阈值、证据条数和限制。体检只创建并清理自身临时写入探针，不改配置或安装依赖。
+
+`share` 另生成 Markdown，只取固定状态、已知原因、有限指标/阈值、计数和严格版本号；省略路径、原文、日志、模型标签、时间、哈希及未知字段，以“记录1”等别名代替运行编号。请分享**文件正文或 `share_summary`**，整个工具返回仍含本地文件位置。数值和版本也可能敏感，请先预览。摘要不能用于 status/bind/complete，不证明事实正确，也不保证识别全部秘密。
+
+JSON 拒绝时，`execution.errors[].diagnostic` 提供可确认的发现点：行列从 1 开始，按解码后 UTF-16 计数；CRLF 视为一次换行。受限字段路径无法安全确定时为 `null`，不回显原文。位置不一定是唯一修改点；不自动修复或额外重试。
+
+status 新增 `changes`：只解释原回执与本次捕获的固定绑定字段，最多显示 20 项并标明截断。`COMPLETE` 仅指所列范围已核对，未变化也不代表事实正确；`UNVERIFIED` 表示部分或全部未核实，已确认变化仍可列出。契约校验失败沿用原拒绝路径，其余未核实，不绕过检查补造对照，也不据此归因分数变化。
 
 ## 原生结果卡
 
@@ -102,7 +132,9 @@ veriscope_gate_export({run_id:"实际运行 UUID", format:"md"})
 
 折叠依据包含中文原因、回执阈值、Node／Python／pandas 版本，以及输入路径、字节数和 SHA-256 前 12 位；缺失值保持未知。这些是回执绑定的历史环境描述，当前有效性仍以本次检查为准。
 
-卡片打开时重新检查，不直接显示历史 PASS；加载失败、缺少本会话关联或协议不完整均为待复核。显示仅代表所示检查时刻，不持续监视文件，使用前可再次检查。原生卡片不提供路径设置面板。
+折叠区还列出绑定项变化与未核实提示；原重放有可确认的归档异常位置时，一并显示并标为历史诊断。版本信息是门禁回放环境，不冒充原始模型评测环境。
+
+卡片打开时按同一组显式阈值/基线策略重新检查，不直接显示历史 PASS；加载失败、策略无效、缺少本会话关联或协议不完整均为待复核。显示仅代表所示检查时刻，不持续监视文件，使用前可再次检查。原生卡片不提供路径设置面板。
 
 ## 输出与数据边界
 
