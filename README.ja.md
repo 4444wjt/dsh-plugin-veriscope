@@ -1,16 +1,30 @@
-# VeriScope オフライン・ゲートリプレイ · DSH プラグイン
+# VeriScope ゲートリプレイ
 
 [中文](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.md) · [English](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.en.md) · **日本語** · [한국어](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ko.md)
 
-> 本ページは中国語原文の翻訳です。解釈が異なる場合は中国語原文を優先します。要約ではなく全節を訳していますが、詳細な条件は原文も併せて確認してください。
+> 本ページは中国語原文の翻訳です。解釈が異なる場合は中国語原文を優先します。
 
-> **0.6.0 ローカル候補版へのアップグレード**：既存の受領書の現在の有効性は REVIEW となりますが、過去の PASS／FAIL は書き換えません。更新前に状態ディレクトリ全体と元のアーカイブをバックアップし、永続状態はプラグインの外に保存してください。パッケージ内の `.local` は再インストールで失われる場合があり、受領書だけのエクスポートは完全なバックアップではありません。ReceiptV1 は replay、ReceiptV2 は check を再実行してください。
+**AI 回答品質のリリースゲート。** すでに評価済みの結果が公開可能かを判定し、再確認できる受領書を残します。
 
-既存スコアは Node 単独の閾値ゲートで確認でき、VeriScope アーカイブは元の Python Quality Gate で再実行できます。両経路とも **PASS／FAIL／REVIEW** と確認可能なローカル受領書を返します。
+- **二つの経路**：VeriScope アーカイブを元の Python ゲートで再実行するか、既存の逐条スコアに対して Node だけで閾値判定を行う（VeriScope・Python・pandas は不要）
+- **三つの状態**：PASS／FAIL／REVIEW。REVIEW が PASS に変わることはなく、確定した FAIL が付随する異常で覆われることもない
+- **受領書**：入力・方針・判定器・環境を紐付け、いずれかが変われば古い結論は無効になる
+- **評価もモデル呼び出しもしない**：既存の結果を消費するだけ
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手動同期ミラー](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · VeriScope 本体：[メイン](https://github.com/4444wjt/RAG_Evaluation_Demo)／[ミラー](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue と PR は GitHub へ。
 
-元の replay の数値判定者は Python のままです。B2 は方針に応じて別の `builtin-threshold-v1` または `builtin-threshold-v2` を使います。REVIEW が PASS に変わることはなく、確定した FAIL が付随する異常で覆われることもありません。PASS はアーカイブ指標が紐付いたゲートを通過したことだけを示し、回答の事実正確性を証明しません。本プラグインは再評価せず、アーカイブを変更せず、公開や Git 操作も行いません。
+## 対応ホスト
+
+| ホスト | 形態 | 接続方法 |
+|---|---|---|
+| **DSH** | プラグイン（cordis bundle） | `dsh plugin --profile <名称> add dsh-plugin-veriscope` |
+| **Claude Code** | MCP server | `claude mcp add --transport stdio --env VERISCOPE_STATE_DIR=<ディレクトリ> -- node <絶対パス>/mcp.js` |
+| **Codex** | MCP server | `config.toml` に `[mcp_servers.veriscope]` を追加 |
+| **ホストなし / CI** | CLI | `veriscope-check --archive … --policy …` |
+
+DSH・Claude Code・Codex はいずれも実際のツール呼び出し記録があります。MCP と CLI は `bind`／`complete` とネイティブ結果カードを提供しません。設定例は [MCP 接続手順](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)を参照してください。
+
+> **アップグレード（0.4.0 以降）**：既存の受領書の現在の有効性は REVIEW となりますが、過去の PASS／FAIL は書き換えません。更新前に状態ディレクトリ全体と元のアーカイブをバックアップし、永続状態はプラグインの外に保存してください。パッケージ内の `.local` は再インストールで失われる場合があり、受領書だけのエクスポートは完全なバックアップではありません。ReceiptV1 は replay、ReceiptV2 は check を再実行してください。
 
 ---
 

@@ -1,16 +1,30 @@
-# VeriScope 오프라인 게이트 리플레이 · DSH 플러그인
+# VeriScope 게이트 리플레이
 
 [中文](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.md) · [English](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.en.md) · [日本語](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ja.md) · **한국어**
 
-> 이 문서는 중국어 원문의 번역입니다. 해석이 다를 경우 중국어 원문을 우선합니다. 모든 절을 번역했지만 세부 조건은 원문도 함께 확인하십시오.
+> 이 문서는 중국어 원문의 번역입니다. 해석이 다를 경우 중국어 원문을 우선합니다.
 
-> **0.6.0 로컬 후보 업그레이드 안내**: 기존 영수증의 현재 유효성은 REVIEW가 되지만 과거 PASS／FAIL 판정은 다시 쓰지 않습니다. 업그레이드 전에 전체 상태 디렉터리와 원본 아카이브를 백업하고 플러그인 밖의 영구 상태 디렉터리를 사용하십시오. 패키지 안의 `.local`은 재설치 시 사라질 수 있으며 영수증 내보내기만으로는 완전한 백업이 되지 않습니다. ReceiptV1은 replay, ReceiptV2는 check를 다시 실행하십시오.
+**AI 답변 품질을 위한 릴리스 게이트.** 이미 평가된 결과가 배포 가능한지 판정하고, 다시 확인할 수 있는 영수증을 남깁니다.
 
-기존 점수는 Node 독립 임계값 게이트로 확인하고, VeriScope 아카이브는 원래 Python Quality Gate로 리플레이합니다. 두 경로 모두 **PASS／FAIL／REVIEW**와 확인 가능한 로컬 영수증을 반환합니다.
+- **두 가지 경로**: VeriScope 아카이브를 원래 Python 게이트로 리플레이하거나, 기존의 행별 점수에 대해 Node만으로 임계값 판정을 수행합니다. 후자는 VeriScope·Python·pandas가 필요 없습니다
+- **세 가지 상태**: PASS／FAIL／REVIEW. REVIEW가 PASS로 바뀌지 않으며, 확정된 FAIL이 부수적 이상으로 덮이지 않습니다
+- **영수증**: 입력·정책·판정기·환경을 연결하며, 어느 하나라도 바뀌면 이전 결론은 무효가 됩니다
+- **채점도 모델 호출도 하지 않음**: 이미 존재하는 결과만 소비합니다
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 수동 동기화 미러](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · VeriScope 본체: [메인](https://github.com/4444wjt/RAG_Evaluation_Demo)／[미러](https://gitee.com/kkbushishou/rag-hallucination-evaluator). 이슈와 PR은 GitHub로.
 
-원래 replay의 수치 판정자는 Python으로 유지합니다. B2는 정책에 따라 별도의 `builtin-threshold-v1` 또는 `builtin-threshold-v2`를 사용합니다. REVIEW가 PASS로 바뀌지 않으며, 확정된 FAIL이 부수적 이상으로 덮이지 않습니다. PASS는 아카이브 지표가 연결된 게이트를 통과했다는 것만 뜻하며, 답변의 사실 정확성을 증명하지 않습니다. 이 플러그인은 재평가하지 않고, 아카이브를 수정하지 않으며, 배포나 Git 작업을 수행하지 않습니다.
+## 지원 호스트
+
+| 호스트 | 형태 | 연결 방법 |
+|---|---|---|
+| **DSH** | 플러그인(cordis bundle) | `dsh plugin --profile <이름> add dsh-plugin-veriscope` |
+| **Claude Code** | MCP server | `claude mcp add --transport stdio --env VERISCOPE_STATE_DIR=<디렉터리> -- node <절대 경로>/mcp.js` |
+| **Codex** | MCP server | `config.toml`에 `[mcp_servers.veriscope]` 추가 |
+| **호스트 없음 / CI** | CLI | `veriscope-check --archive … --policy …` |
+
+DSH·Claude Code·Codex 모두 실제 도구 호출 기록이 있습니다. MCP와 CLI는 `bind`／`complete` 및 네이티브 결과 카드를 제공하지 않습니다. 설정 예시는 [MCP 연결 안내](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)를 보십시오.
+
+> **업그레이드(0.4.0 이후)**: 기존 영수증의 현재 유효성은 REVIEW가 되지만 과거 PASS／FAIL 판정은 다시 쓰지 않습니다. 업그레이드 전에 전체 상태 디렉터리와 원본 아카이브를 백업하고 플러그인 밖의 영구 상태 디렉터리를 사용하십시오. 패키지 안의 `.local`은 재설치 시 사라질 수 있으며 영수증 내보내기만으로는 완전한 백업이 되지 않습니다. ReceiptV1은 replay, ReceiptV2는 check를 다시 실행하십시오.
 
 ---
 
