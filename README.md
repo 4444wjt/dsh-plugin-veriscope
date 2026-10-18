@@ -1,14 +1,28 @@
-# VeriScope 离线门禁重放 · DSH 插件
+# VeriScope 门禁重放
 
 **中文** · [English](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.en.md) · [日本語](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ja.md) · [한국어](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ko.md)
 
-> **0.6.0 本地候选升级提示**：旧回执的当前有效性将进入 REVIEW，历史 PASS／FAIL 不会改写。升级前请备份完整状态目录及原归档，并使用插件外的持久状态目录；包内 `.local` 可能随重装丢失，单独导出回执不是完整备份。ReceiptV1 重新 replay，ReceiptV2 重新 check，取得新版回执。
+**给 AI 回答质量做发布门禁**：判定一批已经评测过的结果能不能发布，并留下可复验的回执。
 
-已有评分可用 Node 独立阈值门禁；VeriScope 归档仍可调用原 Python Quality Gate。两条路径均返回**通过／失败／待复核**及可检查的回执。
+- **两条通道**：重放 VeriScope 归档（调原 Python 门禁）；或仅用 Node 对任意已有逐条评分做阈值判定——不需要 VeriScope、Python 或 pandas
+- **三态**：通过／失败／待复核。待复核永不转为通过，已确认失败不被附加异常掩盖
+- **回执**：绑定输入、策略、判定器与环境；条件一变，旧结论自动失效
+- **不评分、不调用模型**：只消费已有结果，不重新评测
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee 手动镜像](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · 完整 VeriScope：[主仓库](https://github.com/4444wjt/RAG_Evaluation_Demo)／[镜像](https://gitee.com/kkbushishou/rag-hallucination-evaluator)。Issue 和 PR 请提交到 GitHub。
 
-原 replay 路径以 Python 为数值裁判；B2 按策略使用独立的 `builtin-threshold-v1` 或 `builtin-threshold-v2`，两条路径口径分开。REVIEW 永不转为 PASS，已确认 FAIL 不被附加异常遮盖。PASS 只说明归档指标通过所绑定门禁，不证明回答事实正确。插件不重新评测、不修改归档、不执行发布或 Git 操作。
+## 支持哪些宿主
+
+| 宿主 | 形态 | 怎么接入 |
+|---|---|---|
+| **DSH** | 插件（cordis bundle） | `dsh plugin --profile <名称> add dsh-plugin-veriscope` |
+| **Claude Code** | MCP server | `claude mcp add --transport stdio --env VERISCOPE_STATE_DIR=<目录> -- node <绝对路径>/mcp.js` |
+| **Codex** | MCP server | `config.toml` 内加 `[mcp_servers.veriscope]` |
+| **无宿主 / CI** | CLI | `veriscope-check --archive … --policy …` |
+
+DSH、Claude Code、Codex 三种宿主均有实测调用记录；MCP 与 CLI 不提供 `bind`／`complete` 与原生结果卡。配置示例见 [MCP 接入说明](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md)。
+
+> **升级提示（0.4.0 起）**：旧回执的当前有效性将进入 REVIEW，历史 PASS／FAIL 不会改写。升级前请备份完整状态目录及原归档，并使用插件外的持久状态目录；包内 `.local` 可能随重装丢失，单独导出回执不是完整备份。ReceiptV1 重新 replay，ReceiptV2 重新 check，取得新版回执。
 
 ---
 

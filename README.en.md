@@ -1,16 +1,30 @@
-# VeriScope Offline Gate Replay · DSH Plugin
+# VeriScope Gate Replay
 
 [中文](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.md) · **English** · [日本語](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ja.md) · [한국어](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/README.ko.md)
 
 > This page is a translation of the Chinese original. If the two ever disagree, the Chinese original is authoritative.
 
-> **Upgrading to the 0.6.0 local candidate**: existing receipts become REVIEW for current validity; historical PASS/FAIL verdicts are not rewritten. Back up the complete state directory and original archives before upgrading, and use a persistent state directory outside the plugin. Package-local `.local` may be lost on reinstall; exporting a receipt is not a complete backup. Run replay for ReceiptV1 or check for ReceiptV2 to obtain a new receipt.
+**A release gate for AI answer quality.** It decides whether a batch of already-evaluated results may ship, and leaves a re-checkable receipt behind.
 
-Check existing scores with a standalone Node threshold gate, or replay VeriScope archives with the original Python Quality Gate. Both return **PASS / FAIL / REVIEW** and verifiable local receipts.
+- **Two channels**: replay a VeriScope archive through the original Python gate; or run a threshold gate over any existing per-row scores with Node only — no VeriScope, Python or pandas
+- **Three states**: PASS / FAIL / REVIEW. REVIEW never becomes PASS, and a confirmed FAIL is never masked by additional anomalies
+- **Receipt**: binds input, policy, judge and environment; when any of them changes, the old verdict stops being valid
+- **No scoring, no model calls**: it only consumes results that already exist
 
 [GitHub](https://github.com/4444wjt/dsh-plugin-veriscope) · [Gitee mirror (manually synchronized)](https://gitee.com/kkbushishou/dsh-plugin-veriscope) · Full VeriScope: [main repo](https://github.com/4444wjt/RAG_Evaluation_Demo) / [mirror](https://gitee.com/kkbushishou/rag-hallucination-evaluator). Issues and PRs go to GitHub.
 
-Python remains the numeric judge for replay; B2 selects the separate `builtin-threshold-v1` or `builtin-threshold-v2` engine by policy. REVIEW never becomes PASS, and a confirmed FAIL is never masked by additional anomalies. PASS only means the archived metrics passed the bound gate; it does not prove any answer is factually correct. The plugin does not re-evaluate, does not modify archives, and performs no publish or Git operations.
+## Supported hosts
+
+| Host | Form | How to connect |
+|---|---|---|
+| **DSH** | Plugin (cordis bundle) | `dsh plugin --profile <name> add dsh-plugin-veriscope` |
+| **Claude Code** | MCP server | `claude mcp add --transport stdio --env VERISCOPE_STATE_DIR=<dir> -- node <absolute path>/mcp.js` |
+| **Codex** | MCP server | add `[mcp_servers.veriscope]` to `config.toml` |
+| **No host / CI** | CLI | `veriscope-check --archive … --policy …` |
+
+DSH, Claude Code and Codex all have recorded real tool invocations. MCP and CLI do not expose `bind`/`complete` or the native result card. See [MCP setup](https://github.com/4444wjt/dsh-plugin-veriscope/blob/main/docs/MCP.md) for configuration examples.
+
+> **Upgrading (0.4.0 and later)**: existing receipts become REVIEW for current validity; historical PASS/FAIL verdicts are not rewritten. Back up the complete state directory and original archives before upgrading, and use a persistent state directory outside the plugin. Package-local `.local` may be lost on reinstall; exporting a receipt is not a complete backup. Run replay for ReceiptV1 or check for ReceiptV2 to obtain a new receipt.
 
 ---
 
